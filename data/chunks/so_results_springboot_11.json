@@ -1,0 +1,269 @@
+[
+  {
+    "id": "so-22157687",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/22157687/spring-mvc-rest-handing-bad-url-404-by-returning-json",
+    "title": "Spring MVC REST Handing Bad Url (404) by returning JSON",
+    "content": "I am developing a REST service using SpringMVC, where I have @RequestMapping at class and method level. \n\nThis application is currently configured to return error-page jsp configured in web.xml. \n\n<error-page>\n    <error-code>404</error-code>\n    <location>/resourceNotFound</location>\n</error-page>\n\nI however want to return custom JSON instead of this error page.\n\nI am able to handle exception and return json for other exceptions, by writing this in controller, but not sure how and where to write the logic to return JSON when the url does not exist at all. \n\n    @ExceptionHandler(TypeMismatchException.class)\n        @ResponseStatus(value=HttpStatus.NOT_FOUND)\n        @ResponseBody\n        public ResponseEntity<String> handleTypeMismatchException(HttpServletRequest req, TypeMismatchException ex) {\n\n            HttpHeaders headers = new HttpHeaders();\n            headers.add(\"Content-Type\", \"application/json; charset=utf-8\");",
+    "tags": [
+      "json",
+      "rest",
+      "spring-mvc"
+    ],
+    "solution": "After digging around DispatcherServlet and HttpServletBean.init() in SpringFramework I see that its possible in Spring 4. \n\norg.springframework.web.servlet.DispatcherServlet\n\n/** Throw a NoHandlerFoundException if no Handler was found to process this request? **/\nprivate boolean throwExceptionIfNoHandlerFound = false;\n\nprotected void noHandlerFound(HttpServletRequest request, HttpServletResponse response) throws Exception {\n    if (pageNotFoundLogger.isWarnEnabled()) {\n        String requestUri = urlPathHelper.getRequestUri(request);\n        pageNotFoundLogger.warn(\"No mapping found for HTTP request with URI [\" + requestUri +\n                \"] in DispatcherServlet with name '\" + getServletName() + \"'\");\n    }\n    if(throwExceptionIfNoHandlerFound) {\n        ServletServerHttpRequest req = new ServletServerHttpRequest(request);\n        throw new NoHandlerFoundException(req.getMethod().name(),\n                req.getServletRequest().getRequestURI(),req.getHeaders());\n    } else {\n        response.sendError(HttpServletResponse.SC_NOT_FOUND);\n    }",
+    "chunk_id": "so-22157687-001"
+  },
+  {
+    "id": "so-26237984",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/26237984/custom-handling-for-405-error-with-spring-web-mvc",
+    "title": "Custom handling for 405 error with Spring Web MVC",
+    "content": "In my application, I have a few RequestMappings that only allow POST. If someone happens to fire a GET request at that particular path, they get a 405 error page fed by the container (Tomcat). I can create and define a 405 error page in web.xml for customization.\n\nWhat I want: any request that would result in a 405 error should be handled in a specific controller method.\n\nWhat I've tried:\n\na method with \"method = GET\" as a counterpart for each of the mappings mentioned. This works fine, but requires me to create an actual requestmapping and method for every path that only allows POST. I find this unnecessary duplication and clutter.\n\na global 'catch' method (requestmapping /*): this does not work, as Spring takes the GET method to be a wrong call to the path specified with POST only\n\nan ExceptionHandler-annotated method to handle exceptions of class HttpRequestMethodNotSupportedException: this does not work. It seems that Spring throws and catches this exception entirely in its framework code.\n\nspecify my own 405 in web.xml. This is not perfect, as I want to have customized handling rather than a static error page.",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc"
+    ],
+    "solution": "I would suggest using a Handler Exception Resolver. You can use spring's \nDefaultHandlerExceptionResolver\n. Override \nhandleHttpRequestMethodNotSupported()\n method and return your customized \nview\n. This will work across all of your application. \n\nThe effect is close to what you were expecting in your option 3. The reason your \n@ExceptionHandler\n annotated method never catches your exception is because these ExceptionHandler annotated methods are invoked after a successful Spring controller handler mapping is found. However, your exception is raised before that.",
+    "chunk_id": "so-26237984-001"
+  },
+  {
+    "id": "so-51216326",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/51216326/overriding-the-handling-behavior-for-standard-spring-mvc-exceptions",
+    "title": "Overriding the handling behavior for standard Spring MVC exceptions",
+    "content": "Spring Boot seems to have a default behavior for handling certain exceptions.\nI have a rest controller. If I do not handle \nHttpRequestMethodNotSupportedException\n in the \n@ControllerAdvice\n annotated rest controller, the application returns a default JSON response containing the error message.\n\nI do not want to replace this JSON response, but I do want to log additional information (e.g. log certain requestor's IP address) when it happens. \n\nIs there a way to do this with an \n@ExceptionHandler\n annotated method, or other mechanism?",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "spring-boot",
+      "exception"
+    ],
+    "solution": "Spring MVC configures indeed an exception handler for you.\n\nBy default, \nDefaultHandlerExceptionResolver\n is used as stated in the class javadoc : \n\nDefault implementation of the \nHandlerExceptionResolver\n interface that\n  resolves standard Spring exceptions and translates them to\n  corresponding HTTP status codes.\n\nThis exception resolver is enabled by default in the common Spring\n\norg.springframework.web.servlet.DispatcherServlet\n.\n\n  That is right for MVC controllers.   \n\nBut for exception handlers for REST controllers (your requirement here), Spring rely on the ",
+    "chunk_id": "so-51216326-001"
+  },
+  {
+    "id": "so-32479919",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32479919/spring-boot-405-post-method-not-supported",
+    "title": "Spring Boot 405 POST method not supported?",
+    "content": "How could POST method not support by Spring Boot MVC ?! I am trying to implement a simple post method that accepts a list of entities : here is my code  \n\n@RestController(value=\"/backoffice/tags\")\npublic class TagsController {\n\n    @RequestMapping(value = \"/add\", method = RequestMethod.POST)\n        public void add(@RequestBody List<Tag> keywords) {\n            tagsService.add(keywords);\n        }\n}\n\nHitting this URL like this:  \n\nhttp://localhost:8090/backoffice/tags/add\n\nRequest Body: \n\n[{\"tagName\":\"qweqwe\"},{\"tagName\":\"zxczxczx\"}]\n\nI receive:",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "solution": "You have an error in RestController annotation definition. According to the docs it is:\n\npublic @interface RestController {\n\n/**      * The value may indicate a suggestion for a logical component\n  name,      * to be turned into a Spring bean in case of an autodetected\n  component.     * @return the suggested component name, if any      * @since\n  4.0.1      */     String value() default \"\";\n\n}\n\nWhich means the value you have entered (\"/backoffice/tags\") is NAME of the controller not the path under which it is available. \n\nAdd \n@RequestMapping(\"/backoffice/tags\")\n on the controller's class and remove value from the \n@RestController\n annotation.\n\nEDIT:",
+    "chunk_id": "so-32479919-001"
+  },
+  {
+    "id": "so-31954292",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31954292/spring-security-with-basic-auth-redirecting-to-error-for-invalid-credentials",
+    "title": "Spring Security with basic auth redirecting to /error for invalid credentials",
+    "content": "I have a spring boot application running with spring security using basic auth.\nWhen proper basic auth credentials are supplied, everything is good, but for incorrect auth credentials, spring comes up with a \nHttpRequestMethodNotSupportedException: Request method 'POST' not supported\n exception.\n\nAccording to the logs, the authentication failure has been identified by spring, but that's not what comes out.\n\n2015-08-12 09:33:10.922  INFO 16988 --- [nio-8080-exec-4] o.s.b.a.audit.listener.AuditListener     : AuditEvent [timestamp=Wed Aug 12 09:33:10 AEST 2015, principal=anonymousUser, type=AUTHORIZATION_FAILURE, data={type=org.springframework.security.access.AccessDeniedException, message=Access is denied}]\n2015-08-12 09:33:10.927 TRACE 16988 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Bound request context to thread: FirewalledRequest[ org.apache.catalina.core.ApplicationHttpRequest@483e1fc6]\n2015-08-12 09:33:10.927 DEBUG 16988 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : DispatcherServlet with name 'dispatcherServlet' processing POST request for [/myapplication/error]\n2015-08-12 09:33:10.927 TRACE 16988 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Testing handler map [org.springframework.web.servlet.handler.SimpleUrlHandlerMapping@331bb032] in DispatcherServlet with name 'dispatcherServlet'\n2015-08-12 09:33:10.927 TRACE 16988 --- [nio-8080-exec-4] o.s.w.s.handler.SimpleUrlHandlerMapping  : No handler mapping found for [/error]\n2015-08-12 09:33:10.927 TRACE 16988 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Testing handler map [org.springframework.boot.actuate.endpoint.mvc.EndpointHandlerMapping@69e79b9b] in DispatcherServlet with name 'dispatcherServlet'\n2015-08-12 09:33:10.927 TRACE 16988 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Testing handler map [org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping@27cc0354] in DispatcherServlet with name 'dispatcherServlet'\n2015-08-12 09:33:10.927 DEBUG 16988 --- [nio-8080-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Looking up handler method for path /error\n2015-08-12 09:33:10.928 DEBUG 16988 --- [nio-8080-exec-4] .m.m.a.ExceptionHandlerExceptionResolver : Resolving exception from handler [null]: org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'POST' not supported\n\nWith the above logs & after debugging the spring source, I found out that upon identifying that the credentials are incorrect, spring creates a BadCredentials exception and then tries to redirect to “/error”, this redirection is what causes the HttpMethodNotAllowed exception.(my application doesn't have a /error endpoint).\n\nI tried to tell spring not to use /error by configuring the following,",
+    "tags": [
+      "spring",
+      "security",
+      "authentication",
+      "basic-authentication",
+      "credentials"
+    ],
+    "solution": "I created a sample Spring Boot app, with the following security config:\n\n@Configuration\n@EnableWebSecurity\n@EnableGlobalMethodSecurity(prePostEnabled = true)\npublic class SecurityConfig extends WebSecurityConfigurerAdapter {\n\n    @Autowired\n    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {\n        auth.inMemoryAuthentication().withUser(\"test\").password(\"password\").roles(\"USER\");\n    }\n\n    @Bean\n    public AuthenticationEntryPoint authenticationEntryPoint() {\n        return (request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED);\n    }\n\n    @Override\n    protected void configure(HttpSecurity http) throws Exception {\n        http.headers().httpStrictTransportSecurity().xssProtection()",
+    "chunk_id": "so-31954292-001"
+  },
+  {
+    "id": "so-65526146",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/65526146/java-lang-illegalstateexception-could-not-resolve-parameter-0-in-public-org-s",
+    "title": "java.lang.IllegalStateException: Could not resolve parameter [0] in public org.springframework.http.ResponseEntity<java.lang.Object>",
+    "content": "I have custom exception handler yet I am finding constraint violation exception difficult to handle.\n\nController\n\n@RestController\n@RequestMapping(\"/clients\")\n@Slf4j\npublic class ClientController {\n    private final ClientService clientService;\n    private final SuccessResponse successResponse;\n    ModelMapper modelMapper = new ModelMapper();\n\n    ClientController(ClientService clientService, SuccessResponse successResponse) {\n        this.clientService = clientService;\n        this.successResponse = successResponse;\n    }\n\n    @PostMapping\n    public ResponseEntity<ResponseModel> addClient(@Valid @RequestBody ClientRequest clientRequest) {\n        log.info(\"Inside ClientController add clientRequest\"+ clientRequest );",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc"
+    ],
+    "solution": "The specific error you're getting in your logs, \nno suitable resolver\n, helps guide you towards the issue. The class declared by your \n@ExceptionHandler\n annotation must match the first argument in the method that annotation is attached to. Ensure there's no conflicting imports for the class \nConstraintViolationException\n.",
+    "chunk_id": "so-65526146-001"
+  },
+  {
+    "id": "so-56459170",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/56459170/spring-controlleradvice-fail-to-override-handlehttprequestmethodnotsupported",
+    "title": "Spring ControllerAdvice - Fail to override handleHttpRequestMethodNotSupported() in ResponseEntityExceptionHandler",
+    "content": "Here's a few facts for the situation that I'm currently facing\n\nI have recently built a \nRestControllerAdvice\n with various\nExceptionHandler\n as a global exception handler for my Spring RestController. \n\nAs I would like to return my customized response json for handling the pre-defined HTTP error as specified in \nResponseEntityExceptionHandler\n, my \nRestControllerAdvice\n class inherits the \nResponseEntityExceptionHandler\n and methods like \nhandleHttpRequestMethodNotSupported()\n, \nhandleHttpMessageNotReadable()\n are overriden.\n",
+    "tags": [
+      "spring",
+      "spring-mvc",
+      "microservices",
+      "spring-restcontroller"
+    ],
+    "solution": "From the \njackycflau\n answer, we can summarise as 2 questions.\n\nQ1. Why removing \nannotations=RestController.class\n will works for HttpRequestMethodNotSupportedException\n\nQ2. Why only \nHttpRequestMethodNotSupportedException\n is not caught?\n\nTo answer these 2 questions, we need to take a look to code on how spring handle exceptions. The following source code are based on spring 4.3.5.\n\nDuring spring \nDispatcherServlet\n processing the request, when error occur, \nHandlerExceptionResolver\n will try to resolve the exception. In the given case, the exception is delegated to \nExceptionHandlerExceptionResolver",
+    "chunk_id": "so-56459170-001"
+  },
+  {
+    "id": "so-32646989",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32646989/how-to-handle-all-not-handled-exceptions-in-controlleradvice",
+    "title": "How to handle all not handled exceptions in @ControllerAdvice?",
+    "content": "I use this exception handler to handle some specific exceptions in my Spring boot application (REST API):\n\n@ControllerAdvice\nclass GlobalExceptionHandler {\n\n    @ExceptionHandler(NotFoundException.class)\n    @ResponseStatus(HttpStatus.NOT_FOUND)\n    public\n    @ResponseBody\n    ResponseMessage notFound(NotFoundException ex) {\n        return new NotFoundResponseMessage(ex.getMessage());\n    }\n\n    @ResponseStatus(value = HttpStatus.UNSUPPORTED_MEDIA_TYPE)\n    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)\n    public\n    @ResponseBody\n    ResponseMessage unsupportedMediaType(HttpMediaTypeNotSupportedException ex) {\n        return new UnsupportedMediaTypeResponseMessage(ex.getMessage());\n    }",
+    "tags": [
+      "exception",
+      "spring-boot"
+    ],
+    "solution": "See the \ndocs\n:\n\nAny Spring bean declared in the DispatcherServlet’s application\n  context that implements HandlerExceptionResolver will be used to\n  intercept and process any exception raised in the MVC system and not\n  handled by a Controller.\n\npublic interface HandlerExceptionResolver {\n    ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex);\n}",
+    "chunk_id": "so-32646989-001"
+  },
+  {
+    "id": "so-34998628",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34998628/httprequestmethodnotsupportedexception-request-method-post-not-supported",
+    "title": "HttpRequestMethodNotSupportedException: Request method 'POST' not supported",
+    "content": "Creating a unit test with MockMvc I am running into:\n\nHttpRequestMethodNotSupportedException: Request method 'POST' not supported\n\nWhich causes the test case to fail expecting a '200' but getting a '405'. Some of the additional things you may see in the Junit are for Spring Rest Docs and can be ignored. Such as the @Rule or the .andDo() on the mockMvc Call. I have followed the following documentation \nSpring Rest Docs - Path Parameter\n and cannot seem to get it working.\n\nHere is the Controller:\n\n@RestController(\"/transferObjects\")\npublic class TransferObjectController {\n\n    @RequestMapping(method=RequestMethod.GET, produces=\"application/json\")\n    public List<TransferObject> getTransferObjects(){\n        // do some magic\n        return null;\n    }\n\n    @RequestMapping(value = \"/{name}\", method=RequestMethod.POST)",
+    "tags": [
+      "spring",
+      "spring-mvc",
+      "junit",
+      "mockmvc",
+      "spring-restdocs"
+    ],
+    "solution": "It appears I was able to fix this problem. \n\nTaking a closer look at the console while running the test I noticed:\n\nMapped \"{[],methods=[GET],produces=[application/json]}\" onto public java.util.List<common.to.TransferObject> sf.common.controller.TransferObjectController.getTransferObjects()\nMapped \"{[/{name}],methods=[POST]}\" onto public void sf.common.controller.TransferObjectController.addTransferObject(java.lang.String)\nMapped \"{[/{name}],methods=[DELETE]}\" onto public void sf.common.controller.TransferObjectController.deleteTransferObject(java.lang.String)\n\nthis shows that it is mapping the controller request mappings to the specific RequestMapping the method holds. \n@RestController(\"/transferObjects\")\n is not actually defining the mapping as a parent. For me to do that I must include \n@RequestMapping(\"/transferObjects\")\n underneath the \n@RestController\n.\n\nSo by changing the parent mapping I can now use the following test case:\n\n@Test\npublic void testAddTransferObject() throws Exception {",
+    "chunk_id": "so-34998628-001"
+  },
+  {
+    "id": "so-49504103",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/49504103/override-spring-data-rest-post-method",
+    "title": "Override Spring Data Rest POST method",
+    "content": "I need to add additional business-logic for POST method. For now, I'm going to reuse the logic from RepositoryEntityController for getting and save the needed object.\n\n@RepositoryRestController\n@RequestMapping(\"/customPost\")\npublic class UserController implements ApplicationEventPublisherAware {\n\nprivate final UserRepository userRepository;\nprivate final RepositoryRestConfiguration config;\nprivate final HttpHeadersPreparer headersPreparer;\nprivate ApplicationEventPublisher publisher;\n\n@Autowired\npublic UserController(UserRepository userRepository, RepositoryRestConfiguration config, HttpHeadersPreparer headersPreparer) {\n    this.userRepository = userRepository;\n    this.config = config;\n    this.headersPreparer = headersPreparer;\n}\n\npublic void setApplicationEventPublisher(ApplicationEventPublisher publisher) {\n    this.publisher = publisher;",
+    "tags": [
+      "java",
+      "spring-data",
+      "spring-data-jpa",
+      "spring-data-rest"
+    ],
+    "solution": "Spring Data REST emits its own \nevents\n when working with entities:\n\nBeforeCreateEvent\n\nAfterCreateEvent\n\nBeforeSaveEvent\n\nAfterSaveEvent\n\nBeforeLinkSaveEvent\n\nAfterLinkSaveEvent\n\nBeforeDeleteEvent\n\nAfterDeleteEvent\n",
+    "chunk_id": "so-49504103-001"
+  },
+  {
+    "id": "so-32109860",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32109860/spring-oauth2-override-tokenendpoint-allowed-methods",
+    "title": "Spring Oauth2 - override TokenEndpoint allowed methods",
+    "content": "I need to allow users to get an OAuth token via grant_type=password and using GET and not POST. The default implementation for \nTokenEndpoint\n is as follows:\n\npublic class TokenEndpoint extends AbstractEndpoint {\n\nprivate OAuth2RequestValidator oAuth2RequestValidator = new DefaultOAuth2RequestValidator();\n\nprivate Set<HttpMethod> allowedRequestMethods = new HashSet<HttpMethod>(Arrays.asList(HttpMethod.POST));\n\n@RequestMapping(value = \"/oauth/token\", method=RequestMethod.GET)\npublic ResponseEntity<OAuth2AccessToken> getAccessToken(Principal principal, @RequestParam\nMap<String, String> parameters) throws HttpRequestMethodNotSupportedException {\n    if (!allowedRequestMethods.contains(HttpMethod.GET)) {\n        throw new HttpRequestMethodNotSupportedException(\"GET\");\n    }\n    return postAccessToken(principal, parameters);\n}\n\nAs you can see, the default allowed is only POST. I am using XML configuration (not annotations). How can I add to the Set the HttpMethod.GET?",
+    "tags": [
+      "spring",
+      "spring-security",
+      "spring-security-oauth2"
+    ],
+    "solution": "The following config worked:\n\n@Configuration\n@EnableAuthorizationServer\nprotected static class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {\n@Override\npublic void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {\n            endpoints\n                .requestFactory(defaultOAuth2RequestFactory)\n                .authenticationManager(myUserAuthenticationManager)\n                .tokenStore(myTokenStore)\n                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);// to allow get for password grant\n            ;\n\n        }\n@Override\n        public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {\n            security\n                .realm(REALM)\n                .allowFormAuthenticationForClients()// to let users do password grant with username/ password on get",
+    "chunk_id": "so-32109860-001"
+  },
+  {
+    "id": "so-60853368",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/60853368/add-spring-exception-handler-programmatically-without-exceptionhandler-annotat",
+    "title": "Add Spring exception handler programmatically, without @ExceptionHandler annotation (or any other)?",
+    "content": "In Spring, I'd like to add an exception handler programmatically, without relying on the system to scan for methods annotated with \n@ExceptionHandler\n. Is that possible?\n\nCurrently, I'm relying on the system to scan for the following method:\n\n@ExceptionHandler(HttpRequestMethodNotSupportedException.class)\npublic ResponseEntity<String> handle(\n        final HttpRequestMethodNotSupportedException httpRequestMethodNotSupportedException,\n        final HttpServletRequest httpServletRequest,\n        final HttpServletResponse httpServletResponse)\n{\n    return ResponseEntity\n            .status(METHOD_NOT_ALLOWED)\n            .body(format(\n                    \"Unsupported method '%s' for URI '%s'; expected method among: %s.\",\n                    httpRequestMethodNotSupportedException.getMethod(),\n                    httpServletRequest.getRequestURI(),\n                    join(\", \", asList(httpRequestMethodNotSupportedException.getSupportedMethods())\n                            .stream()",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "exception"
+    ],
+    "solution": "I don't know if there is an idiomatic way to do it, but I found a way to add exception handlers programmatically.\n\n(I'll wait a few weeks to mark this as accepted, if anyone wants to offer an alternative.)\n\nCode here:\n\nhttps://gist.github.com/drewctaylor/f838eb8304d7c526872ed29934a1e830\n\nUltimately, I subclassed \nExceptionHandlerExceptionResolver\n. Under the hood, \nExceptionHandlerExceptionResolver\n essentially maps from \njava.lang.Class<java.lang.Exception>\n to \njava.lang.reflect.Method\n; if an exception of the given type occurs, the system returns the given method. \n\nThis implementation accepts a list of mappings from \njava.lang.Class<java.lang.Exception>",
+    "chunk_id": "so-60853368-001"
+  },
+  {
+    "id": "so-75214653",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/75214653/restcontrolleradvice-paired-with-exceptionhandler-is-not-returning-a-json-from",
+    "title": "@RestControllerAdvice paired with @ExceptionHandler is not returning a JSON from a data class",
+    "content": "I'm writing a small app using Kotlin with Spring Boot 3. I wanted to have a nice exception handling, so I have created a class annotated with \n@RestControllerAdvice\n, having a couple of methods annotated with \n@ExceptionHandler\n. I have created a \ndata class\n to store the returned body data:\n\ndata class ApiError(\n    private val requestUri: String? = null,\n    private val status: Int = 0,\n    private val statusText: String? = null,\n    private val createdAt: ZonedDateTime = ZonedDateTime.now(ZoneId.of(\"Europe/Warsaw\")),\n    private val errorMessage: String? = null,\n)\n\nThe rest is quite simple:\n\n@RestControllerAdvice\nclass ControllerExceptionHandler {",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "kotlin",
+      "exception"
+    ],
+    "solution": "As you defined all properties in your \nApiError\n data class as private they are not visible to Jackson ObjectMapper serializer which is included in spring-web.\n\nSo to solve your issue you just need \nto remove \nprivate\n modifier\n like this:\n\ndata class ApiError(\n    val requestUri: String? = null,\n    val status: Int = 0,\n    val statusText: String? = null,\n    val createdAt: ZonedDateTime = ZonedDateTime.now(ZoneId.of(\"Europe/Warsaw\")),\n    val errorMessage: String? = null,\n)",
+    "chunk_id": "so-75214653-001"
+  },
+  {
+    "id": "so-64782593",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/64782593/spring-boot-request-to-context-path-generates-405-method-not-allowed-error-for",
+    "title": "spring-boot request to context-path/ generates 405 Method Not Allowed error for static content",
+    "content": "I have a spring boot application with context-path /services. The context-path entry in property file:\n\nserver.servlet.context-path=/services\n\nWhen I use the URL http://localhost:8080/services/ with GET method, it is working fine and returning the static index.html file in response. But when I try to use the same URL http://localhost:8080/services/ with POST method, I am getting the following error:\n\n{\n    \"timestamp\": \"2020-11-11T07:06:37.341+00:00\",\n    \"status\": 405,\n    \"error\": \"Method Not Allowed\",\n    \"message\": \"\",\n    \"path\": \"/services/\"\n}\n\nI have tried using redirect-context-root property, but that did not help. I also tried server.servlet.context-path=/services/ - but this also did not help. What property or configuration will force spring framework to allow POST method for any request with context-path with a trailing slash (/) ?\n\nFrom the logs, I can see the view is getting resolved to [view=\"forward:index.html\"], but right after that we see the ERROR HttpRequestMethodNotSupportedException: Request method 'POST' not supported. So not able to understand which spring class is responsible for throwing this error? And how can we suppress this behavior?\n\no.s.s.web.util.matcher.OrRequestMatcher  : Trying to match using Ant [pattern='/rest/**']\no.s.s.w.u.matcher.AntPathRequestMatcher  : Checking match of request : '/'; against '/rest/**'",
+    "tags": [
+      "spring",
+      "spring-boot"
+    ],
+    "solution": "There is a spring issue reported: \nhttps://github.com/spring-projects/spring-framework/issues/22140\n. But spring also made it clear that they will not make any such change, since request to static resources should not be of type POST, as we are not trying to modify them, rather we are trying to GET them.\n\nI was looking for a workaround, since I had to support POST at the context-root (because of SSO-IDP requirement). So I tried to replicate the 302 Redirect behavior in a Filter. In one of the filters, I checked for the request method POST, request URI /services/ and redirected the request to /services/. This converts the POST request into GET at path /services/ and it works.\n\n// Inside doFilter() method of a Filter\nif (\"POST\".equalsIgnoreCase(httpRequest.getMethod()) && \"/services/\".equalsIgnoreCase(httpRequest.getRequestURI())) {\n    httpResponse.sendRedirect(\"/services/\"); // This converts the POST request to GET request\n    return;\n}\n\nAfter introducing this behavior in filter, when I POST a request to \nhttp://localhost:8080/services/\n, from the above filter, it gets redirected to \nhttp://localhost:8080/services/\n using GET method and I get the desired index.html as response.",
+    "chunk_id": "so-64782593-001"
+  },
+  {
+    "id": "so-55498680",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/55498680/how-to-return-http-status-line-with-error-response",
+    "title": "How to return Http Status-Line with Error Response?",
+    "content": "I am working on a Spring-Boot application. With each response I would like to return http Status-Line, Headers and Body. As per standards a Status-Line looks like: HTTP-Version SP Status-Code SP Reason-Phrase CRLF.\nFor Example: Http/1.1 400 Bad Request\n\nI am using ResponseEntity with VnDErrors but Status-Line is not forming as per standards. I am able to see only \"Http/1.1 400\". Here Reason-Phrase is missing.\n\nI have tried with @ResponseBody with @ResponseStatus annotation but no luck to achieve desired result.\n\nHere is piece of code which I am using:\n\n@ExceptionHandler(HttpRequestMethodNotSupportedException)\n    ResponseEntity<VndErrors> httpRequestMethodNotSupportedException(ex) {\n        LOGGER.error(ex.message)\n        ResponseEntity.status(BAD_REQUEST).contentType(VND_ERROR).body(new \n        VndErrors(BAD_REQUEST, exceptionMessage))\n    }\n\nExpected reponse which conatins Status-Line: \"Http/1.1 400 Bad Request\"\nWould like to know is this achievable? If yes, then how I can proceed to do same.",
+    "tags": [
+      "spring",
+      "rest",
+      "spring-boot",
+      "http",
+      "httpresponse"
+    ],
+    "solution": "This is the standard behavior of tomcat see \ntomcat-8.5-changelog.html\n\nspring-boot-issue-6789\n\nRFC 7230 states that clients should ignore reason phrases in HTTP/1.1 response messages. Since the reason phrase is optional, Tomcat no longer sends it. As a result the system property org.apache.coyote.USE_CUSTOM_STATUS_MSG_IN_HEADER is no longer used and has been removed. (markt)",
+    "chunk_id": "so-55498680-001"
+  },
+  {
+    "id": "so-52014813",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/52014813/exception-org-springframework-web-httprequestmethodnotsupportedexception-while",
+    "title": "Exception: org.springframework.web.HttpRequestMethodNotSupportedException While using Spring post Method",
+    "content": "I have the following code to map post API in my controller. I have defined a model for POST request parameters.\n\npublic class CreateUserBody {\n    String CandidateId = \"\";\n    String EmployeeId = \"\";\n    String CompanyId = \"\";\n\n    public String getCandidateId() {\n        return CandidateId;\n    }\n    public String getEmployeeId() {\n        return EmployeeId;\n    }\n    public String getCompanyId() {\n        return CompanyId;\n    }\n}\n\nWhen I trigger this API Im getting HttpRequestMethodNotSupportedException. Please help  me with this issue.\n",
+    "tags": [
+      "java",
+      "spring",
+      "post",
+      "request"
+    ],
+    "solution": "Instead of putting data in \nform-data\n post your data in \nraw\n and then select content type as \napplication/json\n. And in body your data should be like following:\n\n{\n  \"CandidateId\":\"3\",\n  \"EmployeeId\":\"5696969\",\n  \"CompanyId\":\"15272\"\n}\n\nand your requested url in postman should be like following:\n\nhttp://localhost:9199/SetEmployeeIdOneByOne/",
+    "chunk_id": "so-52014813-001"
+  },
+  {
+    "id": "so-46982311",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/46982311/http-error-502-3-bad-gateway-when-after-deploying-spring-boot-application-in-a",
+    "title": "HTTP Error 502.3 - Bad Gateway when after deploying Spring boot application in azure tomcat app service",
+    "content": "I deployed spring boot Rest application in azure tomcat app service. Here I copied application from my local tomcat webapps folder to azure tomcat webapps fodler using FTP( copied app folder structure, not war file).\n\nIts working fine.. but after some time server is not responding and returning HTTP Error 502.3 - Bad Gateway.\n\nWhat could be the reason for this error.  Is there any issue with my spring configuration ? appreciate any help.\n\nwe have two kind of URI's, one health check URI and another one is to fetch the data from database.\n\nWhen app service is down - only  myapp/healthcheck is returning status code 200.\n\nAnd remaining all requests which having uri - myapp/ssp/*** returning status code 502.3\n\nWhen I restart the app service, every thing working, but after some time issue reoccurring.\n\nI am suspecting problem in my AuthenticationFilter.java & RequestValidator. java & ControllerAdvice files\n\nHere is spring boot configuration\n\nhere is my configuration.\n`@SpringBootApplication( exclude = HibernateJpaAutoConfiguration.class )",
+    "tags": [
+      "java",
+      "azure",
+      "tomcat",
+      "spring-boot",
+      "azure-web-app-service"
+    ],
+    "solution": "I fixed this issue after looking at thread dump. The root cause is dead lock occurred at db connection pool. So my request not getting DB connection.. after time out IIS server returning my request with status as \"http-error-502-3-bad-gateway\"",
+    "chunk_id": "so-46982311-001"
+  },
+  {
+    "id": "so-78018801",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/78018801/how-to-make-programmatically-a-call-to-oauth-token-from-the-same-application-wh",
+    "title": "How to make programmatically a call to /oauth/token from the same application where we have it without actual http call?",
+    "content": "I have a case, where I need to get access token without http call to predefined by Oauth Spring Security \n/oauth/token\n endpoint, but instead, have a call for some api, available for the anonymous user, and among the other business data bring the access token back.\n\nI try this code:\n\n        String username = \"username\";\n        String password = \"2134\";\n//\n        AccountInitSetting accountSetting = accountService.getInitSetting(username);\n        try {\n            agentService.createTempCredentials(username, accountSetting.getAccountType(),\n                    null, accountSetting.getRoleId(), accountSetting.getGroupId(),\n                    ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getHeader(\"x-forwarded-for\"),\n                    null, false);\n        } catch (UserInterfaceException e) {\n            throw new RuntimeException(e);\n        }\n\n        Map<String, String> parameters = new HashMap<>();",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "spring-restcontroller"
+    ],
+    "solution": "I had to add explicitly new \nAuthentication\n with \nisAuthenticated()\n true and \ngetName()\n as the application expect.\n\n    String username = \"username\";\n    String password = \"2134\";\n  Map<String, String> parameters = new HashMap<>();\n    parameters.put(\"grant_type\",\"password\");\n    parameters.put(\"username\", username);\n    parameters.put(\"password\", password);\n    //parameters.put(\"clientId\",\"clientId4\");\n    parameters.put(\"scope\",\"all\");\n    Principal principal1 = new Authentication() {\n        @Override\n        public Collection<? extends GrantedAuthority> getAuthorities() {\n            return null;",
+    "chunk_id": "so-78018801-001"
+  }
+]

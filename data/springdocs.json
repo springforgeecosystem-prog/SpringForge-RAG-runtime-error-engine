@@ -1,0 +1,128 @@
+[
+  {
+    "id": "spring-doc-001",
+    "source": "spring-framework",
+    "url": "https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html",
+    "title": "Dependency Injection & Bean Dependencies",
+    "content": "In Spring Framework, beans can collaborate with one another through dependencies. The factory-collaborators mechanism describes how a bean factory can resolve and wire bean dependencies. This includes setter-based, constructor-based dependency injection, and method injection, enabling the application context to manage the lifecycle and dependencies of each bean.",
+    "tags": ["dependency-injection", "beans", "factory"],
+    "chunk_id": "spring-di-001"
+  },
+  {
+    "id": "spring-doc-002",
+    "source": "spring-framework",
+    "url": "https://docs.spring.io/spring-framework/reference/core/beans/factory-nature.html#beans-factory-lifecycle-disposablebean",
+    "title": "Bean Lifecycle & Creation (DisposableBean)",
+    "content": "Spring bean lifecycle includes initialization and destruction phases. A bean implementing the DisposableBean interface will have its destroy() method called when the bean factory is shutting down. This provides a hook to release resources or perform cleanup in a controlled way.",
+    "tags": ["bean-lifecycle", "destroy", "DisposableBean"],
+    "chunk_id": "spring-lifecycle-001"
+  },
+  {
+    "id": "spring-doc-003",
+    "source": "spring-framework",
+    "url": "https://docs.spring.io/spring-framework/reference/core/beans/classpath-scanning.html",
+    "title": "Component Scanning in Spring",
+    "content": "Component scanning in Spring allows automatic detection of candidate beans on the classpath, typically using annotations like @Component, @Service, @Repository, and @Controller. The context configuration can be set to scan specific packages so Spring can discover and register these beans at startup.",
+    "tags": ["component-scan", "beans", "annotations"],
+    "chunk_id": "spring-scan-001"
+  },
+  {
+    "id": "spring-doc-004",
+    "source": "spring-boot",
+    "url": "https://docs.spring.io/spring-boot/reference/using/auto-configuration.html",
+    "title": "Spring Boot Auto-Configuration",
+    "content": "Auto-configuration in Spring Boot automatically configures your Spring application based on the dependencies on the classpath. For example, if HSQLDB is present and there is no manually configured DataSource, Spring Boot configures an in-memory database. You can exclude auto-configuration classes using the exclude attribute of @SpringBootApplication or via properties.",
+    "tags": ["auto-configuration", "spring-boot", "configuration"],
+    "chunk_id": "spring-boot-auto-001"
+  },
+  {
+    "id": "spring-doc-005",
+    "source": "spring-framework",
+    "url": "https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/initializers.html",
+    "title": "Application Context Initializers",
+    "content": "ApplicationContextInitializer is a callback interface for initializing a ConfigurableApplicationContext before any bean definitions are loaded. It allows modifying the application context's environment or registering additional bean definitions programmatically for testing or bootstrapping tasks.",
+    "tags": ["application-context", "initializer", "testing"],
+    "chunk_id": "spring-context-init-001"
+  },
+  {
+    "id": "spring-doc-006",
+    "source": "spring-boot-blog",
+    "url": "https://spring.io/blog/2018/03/28/property-binding-in-spring-boot-2-0",
+    "title": "Property Binding in Spring Boot 2.0",
+    "content": "Spring Boot 2.0 improves property binding by supporting more flexible and conventional binding from property sources (application.properties or YAML) to @ConfigurationProperties classes. It also relaxes property name conventions but preserves type-safe binding, supporting relaxed binding rules for underscore and camel case, among others.",
+    "tags": ["property-binding", "configuration", "spring-boot"],
+    "chunk_id": "spring-binding-001"
+  },
+  {
+    "id": "spring-doc-007",
+    "source": "spring-guide",
+    "url": "https://spring.io/guides/gs/spring-boot",
+    "title": "Building a Spring Boot Application",
+    "content": "This guide shows how to build a stand-alone Spring Boot application. It covers creating a main class with @SpringBootApplication, running an embedded Tomcat server, and writing a simple REST controller. It explains the bootstrap process at application startup and how Spring Boot starts the application context.",
+    "tags": ["spring-boot", "startup", "guide"],
+    "chunk_id": "spring-boot-startup-001"
+  },
+  {
+    "id": "spring-doc-008",
+    "source": "spring-boot",
+    "url": "https://docs.spring.io/spring-boot/reference/features/profiles.html",
+    "title": "Spring Boot Profiles",
+    "content": "Spring Boot profiles allow you to segregate parts of your application configuration and make it only available in certain environments. Profiles can be activated via application.properties, YAML, or programmatically, enabling or disabling beans based on the current runtime environment.",
+    "tags": ["profiles", "environment", "spring-boot"],
+    "chunk_id": "spring-boot-profiles-001"
+  },
+  {
+    "id": "spring-doc-009",
+    "source": "spring-boot",
+    "url": "https://docs.spring.io/spring-boot/how-to/properties-and-configuration.html",
+    "title": "Spring Boot Properties & Configuration",
+    "content": "This section describes how to externalize application configuration in Spring Boot. You can use .properties or .yml files, bind properties to @ConfigurationProperties classes, and override configuration via environment variables, command-line arguments, or default values.",
+    "tags": ["configuration", "properties", "spring-boot"],
+    "chunk_id": "spring-boot-config-001"
+  },
+  {
+    "id": "spring-doc-010",
+    "source": "spring-framework",
+    "url": "https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/application-events.html",
+    "title": "Spring Application Events",
+    "content": "The Spring TestContext framework allows you to publish and listen for ApplicationEvents to support test-driven development. You can write listeners that respond to events like ContextRefreshedEvent or ContextClosedEvent, helping with lifecycle management during tests.",
+    "tags": ["application-events", "testing", "context"],
+    "chunk_id": "spring-context-events-001"
+  },
+  {
+    "id": "spring-doc-011",
+    "source": "spring-boot-guide",
+    "url": "https://spring.io/guides/gs/accessing-data-jpa",
+    "title": "Accessing Data with Spring Data JPA",
+    "content": "This guide explains how to use Spring Data JPA for data access in a Spring Boot application. It covers creating a JPA entity, a repository interface, and using Spring Data to query data. This simplifies data access logic and reduces boilerplate code.",
+    "tags": ["spring-data-jpa", "jpa", "data-access"],
+    "chunk_id": "spring-jpa-001"
+  },
+  {
+    "id": "spring-doc-012",
+    "source": "spring-boot-project",
+    "url": "https://spring.io/projects/spring-data-jpa",
+    "title": "Spring Data JPA Project Overview",
+    "content": "Spring Data JPA is part of the Spring Data family that makes it easier to implement JPA-based repositories. It provides repository abstraction, query derivation, and integration with JPA providers like Hibernate, making data access in Spring Boot much easier.",
+    "tags": ["spring-data-jpa", "repository", "hibernate"],
+    "chunk_id": "spring-jpa-002"
+  },
+  {
+    "id": "spring-doc-013",
+    "source": "spring-boot-guide",
+    "url": "https://spring.io/guides/gs/serving-web-content",
+    "title": "Building Web Applications with Spring MVC",
+    "content": "This guide covers how to build a web application using Spring MVC with Spring Boot. It explains creating controllers (@Controller), view resolvers, and serving web content. The guide also covers how to handle HTTP GET requests and render views.",
+    "tags": ["spring-mvc", "web", "controller"],
+    "chunk_id": "spring-mvc-001"
+  },
+  {
+    "id": "spring-doc-014",
+    "source": "spring-boot-blog",
+    "url": "https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc",
+    "title": "Exception Handling in Spring MVC",
+    "content": "Spring MVC supports exception handling via @ExceptionHandler, @ControllerAdvice, and HandlerExceptionResolver. This allows you to centralize error handling logic in one place, define custom error responses, and customize error resolution for controllers.",
+    "tags": ["error-handling", "mvc", "exceptions"],
+    "chunk_id": "spring-mvc-error-001"
+  }
+]

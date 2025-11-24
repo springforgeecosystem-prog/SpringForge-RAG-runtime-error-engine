@@ -1,0 +1,312 @@
+[
+  {
+    "id": "so-33796218",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/33796218/content-type-application-x-www-form-urlencodedcharset-utf-8-not-supported-for",
+    "title": "Content type 'application/x-www-form-urlencoded;charset=UTF-8' not supported for @RequestBody MultiValueMap",
+    "content": "Based on the answer \nfor problem with x-www-form-urlencoded with Spring @Controller\n\nI have written the below @Controller method\n\n@RequestMapping(value = \"/{email}/authenticate\", method = RequestMethod.POST\n            , produces = {\"application/json\", \"application/xml\"}\n            ,  consumes = {\"application/x-www-form-urlencoded\"}\n    )\n     public\n        @ResponseBody\n        Representation authenticate(@PathVariable(\"email\") String anEmailAddress,\n                                    @RequestBody MultiValueMap paramMap)\n                throws Exception {\n\n            if(paramMap == null || paramMap.get(\"password\") == null) {\n                throw new IllegalArgumentException(\"Password not provided\");\n            }\n    }\n",
+    "tags": [
+      "spring",
+      "spring-mvc",
+      "model-view-controller"
+    ],
+    "solution": "The problem is that when we use \napplication/x-www-form-urlencoded\n, Spring doesn't understand it as a RequestBody. So, if we want to use this\nwe must remove the \n@RequestBody\n annotation.\n\nThen try the following:\n\n@RequestMapping(\n  path = \"/{email}/authenticate\", \n  method = RequestMethod.POST,\n  consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, \n  produces = {\n    MediaType.APPLICATION_ATOM_XML_VALUE, \n    MediaType.APPLICATION_JSON_VALUE\n  })\npublic @ResponseBody Representation authenticate(\n  @PathVariable(\"email\") String anEmailAddress, \n  MultiValueMap paramMap) throws Exception {",
+    "chunk_id": "so-33796218-001"
+  },
+  {
+    "id": "so-3595160",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/3595160/what-does-the-valid-annotation-indicate-in-spring",
+    "title": "What does the @Valid annotation indicate in Spring?",
+    "content": "In the following example, the \nScriptFile\n parameter is marked with an \n@Valid\n annotation.\n\nWhat does \n@Valid\n annotation do?\n\n@RequestMapping(value = \"/scriptfile\", method = RequestMethod.POST)    \npublic String create(@Valid ScriptFile scriptFile, BindingResult result, ModelMap modelMap) {    \n    if (scriptFile == null) throw new IllegalArgumentException(\"A scriptFile is required\");        \n    if (result.hasErrors()) {        \n        modelMap.addAttribute(\"scriptFile\", scriptFile);            \n        modelMap.addAttribute(\"showcases\", ShowCase.findAllShowCases());            \n        return \"scriptfile/create\";            \n    }        \n    scriptFile.persist();        \n    return \"redirect:/scriptfile/\" + scriptFile.getId();        ",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "spring-annotations"
+    ],
+    "solution": "It's for validation purposes.\n\nValidation It is common to validate a\n  model after binding user input to it.\n  Spring 3 provides support for\n  declarative validation with JSR-303.\n  This support is enabled automatically\n  if a JSR-303 provider, such as\n  Hibernate Validator, is present on\n  your classpath. When enabled, you can\n  trigger validation simply by\n  annotating a Controller method\n  parameter with the @Valid annotation:\n  After binding incoming POST\n  parameters, the AppointmentForm will\n  be validated; in this case, to verify\n  the date field value is not null and\n  occurs in the future.\n\nLook here for more info:",
+    "chunk_id": "so-3595160-001"
+  },
+  {
+    "id": "so-23325413",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/23325413/what-runtimeexception-can-spring-crudrepository-throw",
+    "title": "What RuntimeException can Spring CrudRepository throw?",
+    "content": "I have this Spring Data \nCrudRepository\n which handles the CRUD operations on a DB.\n\n@Repository\npublic interface IUserRepository extends CrudRepository<User, String> {\n\n}\n\nUser\n is the Entity of a User table of my DB. \nCrudRepository\n adds namely the following operations to the repository:\n\ndelete(String ID)\n\nfindOne(String ID)\n\nsave(User user)\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-data"
+    ],
+    "solution": "Spring has built-in exception translation mechanism, so that all exceptions thrown by the JPA persistence providers are converted into Spring's \nDataAccessException\n - for all beans annotated with @Repository (or configured).\n\nThere are four main groups -\n\nNonTransientDataAccessException\n - these are the exceptions where a retry of the same operation would fail unless the cause of the Exception is corrected. So if you pass non existing id for example, it will fail unless the id exists in the database. \n\nRecoverableDataAccessException\n - these are the \"opposite\" of the previous one - exceptions which are recoverable - after some recovery steps. More details in the API docs\n\nScriptException\n - SQL related exceptions, when trying to process not well-formed script for example.\n\nTransientDataAccessException\n - these are the exception when recovery is possible without any explicit step, e.g. when there is a timeout to the database, you are retrying after few seconds.\n\nThat said, the ideal place to find documentation about all exceptions - is in the API itself - just go through the hierarchy of \nDataAccessException",
+    "chunk_id": "so-23325413-001"
+  },
+  {
+    "id": "so-4617099",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/4617099/spring-3-0-mvc-binding-enums-case-sensitive",
+    "title": "Spring 3.0 MVC binding Enums Case Sensitive",
+    "content": "If I have a RequestMapping in a Spring controller like so... \n\n@RequestMapping(method = RequestMethod.GET, value = \"{product}\")\npublic ModelAndView getPage(@PathVariable Product product)\n\nAnd Product is an enum. eg. Product.Home\n\nWhen I request the page, mysite.com/home\n\nI get\n\nUnable to convert value \"home\" from type 'java.lang.String' to type 'domain.model.product.Product'; nested exception is java.lang.IllegalArgumentException: No enum const class domain.model.product.Product.home\n\nIs there a way to have the enum type converter to understand that lower case home is actually Home? \n\nI'd like to keep the url case insensitive and my Java enums with standard capital letters.\n\nThanks\n\nSolution",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc"
+    ],
+    "solution": "Broadly speaking, you want to create a new PropertyEditor that does the normalisation for you, and then you register that in your Controller like so:\n\n@InitBinder\n public void initBinder(WebDataBinder binder) {\n\n  binder.registerCustomEditor(Product.class,\n    new CaseInsensitivePropertyEditor());\n }",
+    "chunk_id": "so-4617099-001"
+  },
+  {
+    "id": "so-2440984",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/2440984/assert-a-good-practice-or-not",
+    "title": "Assert a good practice or not?",
+    "content": "Is it a good practice to use Assert for function parameters to enforce their validity. I was going through the source code of Spring Framework and I noticed that they use \nAssert.notNull\n a lot. Here's an example\n\npublic static ParsedSql parseSqlStatement(String sql) {\n    Assert.notNull(sql, \"SQL must not be null\");\n}\n\nHere's Another one:\n\npublic NamedParameterJdbcTemplate(DataSource dataSource) {\n    Assert.notNull(dataSource,\n            \"The [dataSource] argument cannot be null.\");\n    this.classicJdbcTemplate = new JdbcTemplate(dataSource);\n}\n\npublic NamedParameterJdbcTemplate(JdbcOperations classicJdbcTemplate) {\n    Assert.notNull(classicJdbcTemplate,\n            \"JdbcTemplate must not be null\");\n    this.classicJdbcTemplate = classicJdbcTemplate;",
+    "tags": [
+      "java",
+      "assert"
+    ],
+    "solution": "In principle, \nassertions\n are not that different from many other run-time checkings.\n\nFor example, Java bound-checks all array accesses at run-time. Does this make things a bit slower? Yes. Is it beneficial? Absolutely! As soon as out-of-bound violation occurs, an exception is thrown and the programmer is alerted to any possible bug! The behavior in other systems where array accesses are not bound-checked are A LOT MORE UNPREDICTABLE! (often with disastrous consequences!).\n\nAssertions, whether you use library or language support, is similar in spirit. There are performance costs, but it's absolutely worth it. In fact, assertions are even more valuable because it's explicit, and it communicates higher-level concepts.\n\nUsed properly, the performance cost can be minimized and the value, both for the client (who will catch contract violations sooner rather than later) and the developers (because the contract is \nself-enforcing\n and \nself-documenting\n), is maximized.\n\nAnother way to look at it is to think of assertions as \"active comments\". There's no arguing that comments are useful, but they're PASSIVE; computationally they do nothing. By formulating some concepts as assertions instead of comments, they become ACTIVE. They actually must hold at run time; violations will be caught.\n\nSee also: \nthe benefits of programming with assertions",
+    "chunk_id": "so-2440984-001"
+  },
+  {
+    "id": "so-46246104",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/46246104/illegalargumentexception-not-a-managed-type-in-spring-boot-application",
+    "title": "\"IllegalArgumentException: Not a managed type\" in Spring Boot application",
+    "content": "I am using Spring Boot and JPA. It is \nhere\n\nI've got a domain that looks like this. Also it seems \nEntity\n annotation is deprecated so I am using \n@DynamicUpdate\n instead.\n\n@Data\n@AllArgsConstructor\n@NoArgsConstructor\n@DynamicUpdate\npublic class Person {\n    private String id;\n    private String name;\n}\n\nMy \n@SpringBootApplication",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "solution": "Maybe \nPerson\n needs the \nEntity\n annotation since you are using JPA.\n\n@Entity\n@Data\n@AllArgsConstructor\n@NoArgsConstructor\n@DynamicUpdate\npublic class Person {\n    private String id;\n    private String name;\n}",
+    "chunk_id": "so-46246104-001"
+  },
+  {
+    "id": "so-8649818",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8649818/implement-custom-authenticationprovider-in-spring-security-2-06",
+    "title": "Implement custom AuthenticationProvider in Spring Security 2.06",
+    "content": "I'm using Spring Security to secure a Struts2 web application. Due to project constraints, I'm using Spring Security 2.06.\n\nMy team built a custom User Management API that authenticates a user after taking in username and password parameters, and returns a custom user object containing a list of roles and other attributes like email, name, etc.\n\nFrom my understanding, the typical Spring Security use-case uses a default UserDetailsService to retrieve a UserDetails object; this object will contain (among other things) a password field that will be used by the framework to authenticate the user.\n\nIn my case, I want to let our custom API do the authentication, then return a custom UserDetails object containing the roles and other attributes (email, etc).\n\nAfter some research, I figured out that I can do this through a custom implementation of AuthenticationProvider. I also have custom implementations of UserDetailsService and UserDetails.\n\nMy problem is that I don't really understand what I'm supposed to be returning in CustomAuthenticationProvider. Do I use my custom UserDetailsService object here? Is that even needed? Sorry, I'm really confused.\n\nCustomAuthenticationProvider:\n\npublic class CustomAuthenticationProvider implements AuthenticationProvider {\n\nprivate Logger logger = Logger.getLogger(CustomAuthenticationProvider.class);\n\nprivate UserDetailsService userDetailsService; //what am i supposed to do with this?\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-security"
+    ],
+    "solution": "If you are implementing your own \nAuthenticationProvider\n, You don't have to implement a \nUserDetailsService\n if you don't want to. \nUserDetailsService\n just provides a standard DAO for loading user information and some other classes within the framework are implemented to use it.\n\nNormally, to authenticate using a username and password, you would instantiate a \nDaoAuthenticationProvider\n and inject that with a \nUserDetailsService\n. That may still be your best approach. If you implement your own provider, you take on the responsibility of making sure the user has supplied the correct password and so on. However, in some cases this is a simpler approach.\n\nTo answer your \"what should happen here?\" comment in your code, it would be something like\n\n@Override\npublic Authentication authenticate(Authentication authentication) throws AuthenticationException {\n  UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) authentication;\n  String username = String.valueOf(auth.getPrincipal());",
+    "chunk_id": "so-8649818-001"
+  },
+  {
+    "id": "so-12977368",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/12977368/how-to-change-the-content-type-in-exception-handler",
+    "title": "How to change the content type in exception handler",
+    "content": "Suppose I have a controller that serves \nGET\n request and returns bean to be serialized to JSON and also provides an exception handler for \nIllegalArgumentException\n that can be raised in service:\n\n@RequestMapping(value = \"/meta/{itemId}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)\n@ResponseBody\npublic MetaInformation getMetaInformation(@PathVariable int itemId) {\n    return myService.getMetaInformation(itemId);\n}\n\n@ExceptionHandler(IllegalArgumentException.class)\n@ResponseStatus(value = HttpStatus.BAD_REQUEST)\n@ResponseBody\npublic String handleIllegalArgumentException(IllegalArgumentException ex) {\n    return ExceptionUtils.getStackTrace(ex);\n}\n\nMessage convertors are:",
+    "tags": [
+      "spring",
+      "spring-mvc",
+      "mime-types"
+    ],
+    "solution": "I think removing the \nproduces = MediaType.APPLICATION_JSON_VALUE\n from \n@RequestMapping\n of the \ngetMetaInformation\n will give you the desired result.\n\nThe response-type will be negotiated according to the content-type value in the Accept header.\n\nedit\n\nAs this does not cover scenario 3,4 here is a solution working with \nResponseEntity.class\n directly:\n\n@ExceptionHandler(Exception.class)\npublic ResponseEntity<String> handleIllegalArgumentException(Exception ex) {\n    HttpHeaders headers = new HttpHeaders();\n    headers.setContentType(MediaType.TEXT_PLAIN);",
+    "chunk_id": "so-12977368-001"
+  },
+  {
+    "id": "so-33637427",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/33637427/spring-requestbody-and-enum-value",
+    "title": "Spring @RequestBody and Enum value",
+    "content": "I Have this \nenum\n\npublic enum Reos {\n\n    VALUE1(\"A\"),VALUE2(\"B\"); \n\n    private String text;\n\n    Reos(String text){this.text = text;}\n\n    public String getText(){return this.text;}\n\n    public static Reos fromText(String text){\n        for(Reos r : Reos.values()){\n            if(r.getText().equals(text)){\n                return r;\n            }\n        }\n        throw new IllegalArgumentException();",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "enums"
+    ],
+    "solution": "I've found what I need. \nhttp://chrisjordan.ca/post/50865405944/custom-json-serialization-for-enums-using-jackson\n.\n\nIt was 2 steps.\n\nOverride the toString method of the Reos enum\n\n@Override\npublic String toString() {\n    return text;\n}\n\nAnnotate with @JsonCreator the fromText method of the Reos enum.\n\n@JsonCreator\npublic static Reos fromText(String text)\n\nAnd that's all.\n",
+    "chunk_id": "so-33637427-001"
+  },
+  {
+    "id": "so-25992277",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/25992277/aspectj-pointcut-for-all-methods-inside-package",
+    "title": "@AspectJ pointcut for all methods inside package",
+    "content": "I have this working code for a specific package, but i want to configure it for all \ncontrollers\n, \nservice\n and \ndao\n packages\nEg\n\ncom.abc.xyz.content.controller\n\ncom.abc.xyz.content.service\n\ncom.abc.xyz.content.dao\n\ncom.abc.xyz.category.controller\n\ncom.abc.xyz.category.service\n\ncom.abc.xyz.category.dao",
+    "tags": [
+      "java",
+      "spring",
+      "aop",
+      "aspectj",
+      "spring-aop"
+    ],
+    "solution": "How about one of these alternatives?\n\nA) General execution pointcut with package restrictions:\n\nexecution(* *(..)) &&\n(\n    within(com.abc.xyz..controller..*) ||\n    within(com.abc.xyz..service..*) ||\n    within(com.abc.xyz..dao..*)\n)\n\nB) Package-restricted execution pointcuts:\n\nexecution(* com.abc.xyz..controller..*(..)) ||\nexecution(* com.abc.xyz..service..*(..)) ||\nexecution(* com.abc.xyz..dao..*(..))\n\nI prefer B, by the way, just because it is a bit shorter and easier to read. As you have probably guessed, the \n..\n notation means \"any package or subpackage\", whereas ",
+    "chunk_id": "so-25992277-001"
+  },
+  {
+    "id": "so-64517537",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/64517537/springboot-validate-requestbody",
+    "title": "Springboot - validate @RequestBody",
+    "content": "Question: It is possible to validate the JSON payload of a request body, without specifically writing if statements? Maybe via annotation or configuration?\n\nI have a very easy POJO:\n\npublic class Foo {\n\n    private int important;\n    private String something;\n\n//constructors, getter, seters, toString\n}\n\nAnd a very easy controller class:\n\n@SpringBootApplication\n@RestController\npublic class QuestionController {\n\n    public static void main(String[] args) {\n        SpringApplication.run(QuestionController.class, args);",
+    "tags": [
+      "java",
+      "json",
+      "spring-boot"
+    ],
+    "solution": "Add @NotNull annotation on a field (you may need to change type to Integer), and add @Valid annotation on the method parameter of the controller.\n\nMono<String> question(@Valid @RequestBody Foo foo) {\n    ...\n}\n\npublic class Foo {\n\n    @NotNull\n    private Integer important;\n    private String something;\n\n//constructors, getter, seters, toString\n}\n\nYou can find more information here: \nhttps://lmonkiewicz.medium.com/the-power-of-spring-rest-api-validation-77be83edef",
+    "chunk_id": "so-64517537-001"
+  },
+  {
+    "id": "so-10596744",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/10596744/is-it-possible-for-class-to-inherit-the-annotations-of-the-super-class",
+    "title": "Is it possible for class to inherit the annotations of the super class",
+    "content": "I am using Spring Framework transactional annotations for transaction managing and I have an \nabstract class\n annotated \n@Transactional\n as seen below:\n\npackage org.tts.maqraa.service;\n\nimport java.util.Collection;\nimport java.util.Iterator;\nimport java.util.List;\nimport java.util.Set;\n\nimport javax.persistence.EntityManager;\nimport javax.persistence.EntityNotFoundException;\nimport javax.persistence.PersistenceContext;\nimport javax.persistence.PersistenceContextType;\nimport javax.persistence.Query;\n\nimport org.springframework.transaction.annotation.Propagation;",
+    "tags": [
+      "java",
+      "spring",
+      "class",
+      "inheritance",
+      "annotations"
+    ],
+    "solution": "Annotation inheritance works basically the same way as inheritance of methods or fields.\n\nSince you can access annotations only through reflection, there are two basic methods in \nClass\n:\n\ngetAnnotations()\n returns all annotations on the current class and its super classes\n\ngetDeclaredAnnotations()\n returns all annotations on the current class\n\nThe problem the article you linked talks about is that \nMethod#getAnnotation(...)\n accesses \ndeclaredAnnotations()\n of the class the method has been defined in, which as stated above only returns the annotations defined in that class and not those of the super classes.\n\nThis means that if you override one of the methods annotated with \n@Transactional",
+    "chunk_id": "so-10596744-001"
+  },
+  {
+    "id": "so-14223649",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/14223649/how-to-implement-auditoraware-with-spring-data-jpa-and-spring-security",
+    "title": "How to implement AuditorAware with Spring Data JPA and Spring Security?",
+    "content": "We use Hibernate/JPA, Spring, Spring Data and Spring Security in our application. I have a standard \nUser\n entity which is mapped using JPA. Further, I have a \nUserRepository\n\npublic interface UserRepository extends CrudRepository<User, Long> {\n    List<User> findByUsername(String username);\n}\n\nwhich follows the Spring Data convention for naming query methods.  I have an entity \n\n@Entity\npublic class Foo extends AbstractAuditable<User, Long> {\n    private String name;\n}\n\nI want to use Spring Data auditing support. (As descripe \nhere\n.) Hence I created a \nAuditorService",
+    "tags": [
+      "spring",
+      "hibernate",
+      "jpa",
+      "spring-security",
+      "spring-data"
+    ],
+    "solution": "I got the same issue and what I did was just change the propagation on the \nfindByUsername(username)\n method to \nPropagation.REQUIRES_NEW\n, I suspected that was a problem with the transactions, so I changed to use a new transaction and that worked well for me. I hope this can help.\n\n@Repository\npublic interface UserRepository extends JpaRepository<User, String> {\n\n    @Transactional(propagation = Propagation.REQUIRES_NEW)\n    List<User> findByUsername(String username);\n}",
+    "chunk_id": "so-14223649-001"
+  },
+  {
+    "id": "so-40738818",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/40738818/illegalargumentexception-at-least-one-jpa-metamodel-must-be-present",
+    "title": "IllegalArgumentException: At least one JPA metamodel must be present",
+    "content": "while starting with spring rest I got following error as\n\norg.springframework.beans.factory.BeanCreationException: Error\ncreating bean with name 'jpaMappingContext': Invocation of init method\nfailed; nested exception is java.lang.IllegalArgumentException: At\nleast one JPA metamodel must be present!\n        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1595)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]\n        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:566)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]\n        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:482)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]\n        at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:304)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]\n        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]\n        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:300)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]\n        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:195)\n~[spring-beans-5.0.0.BUILD-SNAPSHOT.jar:5.0.0.BUILD-SNAPSHOT]",
+    "tags": [
+      "java",
+      "spring",
+      "maven",
+      "jpa"
+    ],
+    "solution": "You have added \n\n<dependency>\n          <groupId>org.springframework.boot</groupId>\n          <artifactId>spring-boot-starter-data-jpa</artifactId>\n</dependency>\n\nin your pom.xml.\n\nSpring boot will try automatically create an entity factory for JPA, but you do not have defined anything regarding JPA models.\n\nTry removing it in order to test what have you done so far.\n\nAfterwards you can check a tutorial using spring-data-starter-jpa like \nthis guy",
+    "chunk_id": "so-40738818-001"
+  },
+  {
+    "id": "so-51467132",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/51467132/spring-webmvctest-with-enablejpa-annotation",
+    "title": "Spring @WebMvcTest with @EnableJpa* annotation",
+    "content": "I have the following Main Class.\n\n@EnableJpaAuditing\n@SpringBootApplication\n@EnableJpaRepositories(repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)\npublic class SampleApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(SampleApplication.class, args);\n    }\n}\n\nAnd the following unit test class.\n\n@RunWith(SpringRunner.class)\n@WebMvcTest(controllers = { AccountController.class }, secure = false)\npublic class AccountControllerTest {\n\n    @Autowired\n    private MockMvc mockMvc;",
+    "tags": [
+      "java",
+      "unit-testing",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "solution": "Move the \n@Enable*\n annotations to a dedicated \n@Configuration\n class. This is also explained in the Spring Boot Reference Guide in the special section \nUser Configuration and Slicing\n and noted \nhere\n.\n\nYour main class should only have the \n@SpringBootApplication\n annotation. Then create a specific \n@Configuration\n annotated class with the \n@Enable\n stuff on it. \n\n@SpringBootApplication\npublic class SampleApplication {",
+    "chunk_id": "so-51467132-001"
+  },
+  {
+    "id": "so-7442735",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/7442735/jpa-multiple-jars-defining-entity-objects",
+    "title": "JPA - multiple jars defining @Entity objects",
+    "content": "We are developing a web application with Spring, Hibernate and Maven in a very modular fashion. There are core projects defining data access and view specific stuff, then there are modules defining logic and entities (\n@Entity\n) and then there's the web app defining controller and view.\n\nNow we have a security module defining security entities like account and role and we have a prototype module defining some example entities like customer and order. Both have a \nPersistenceUnit\n defined inside a \npersistence.xml\n which is pretty much empty except for the PersistenceUnit name, as all database configuration is done in the web app with a datasource.xml. The web app is supposed to load both jars as maven dependencies.\n\nBoth projects will build fine, autocscanning all entities and creating them for their respective unit tests. They will also get loaded inside the web app successfully if added individually. \n\nHowever, as soon as both are loaded at the same time, the second one will override the \nPersistenceUnit\n of the first one and thus create an \nIllegalArgumentException : Not an entity\n for all entities from the first one. If both projects have a different persistence unit, loading the web app will throw another exception saying that \nno single default persistence unit\n defined.\n",
+    "tags": [
+      "hibernate",
+      "jpa",
+      "annotations",
+      "entity"
+    ],
+    "solution": "We use a similar module layout,\nbut we place the persistence context in the war-part of our application and inject the entitymanager into the DAOs of the modules.\nExcept for unit testing,\nthe modules don't have a PU.\nWe did this because we were afraid,\nthat a transaction spanning multiple modules could cause trouble.\n\nIn the DAO\n\n@PersistenceContext\nprivate EntityManager em;\n\nIn the persistance.xml you need to enlist all entities with the  elements.\n\n<persistence-unit name=\"myPU\">\n    <class>com.Entity1</class>      \n<class>com.Entity2</class>\n\netc.",
+    "chunk_id": "so-7442735-001"
+  },
+  {
+    "id": "so-34612019",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34612019/programmatic-schemaexport-schemaupdate-with-hibernate-5-and-spring-4",
+    "title": "Programmatic SchemaExport / SchemaUpdate with Hibernate 5 and Spring 4",
+    "content": "With Spring 4 and Hibernate 4, I was able to use Reflection to get the Hibernate Configuration object from the current environment, using this code:\n\n@Autowired LocalContainerEntityManagerFactoryBean lcemfb;\n\nEntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();\nSessionFactoryImpl sf = emf.getSessionFactory();\nSessionFactoryServiceRegistryImpl serviceRegistry = (SessionFactoryServiceRegistryImpl) sf.getServiceRegistry();\nConfiguration cfg = null;\n\ntry {\n    Field field = SessionFactoryServiceRegistryImpl.class.getDeclaredField(\"configuration\");\n    field.setAccessible(true);\n    cfg = (Configuration) field.get(serviceRegistry);\n} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {\n    e.printStackTrace();\n}\n\nSchemaUpdate update = new SchemaUpdate(serviceRegistry, cfg);\n\nWith Hibernate 5, I must use some ",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-4",
+      "hibernate-5.x"
+    ],
+    "solution": "I would like to add up on Aviad's answer to make it complete as per OP's request.\n\nThe internals:\n\nIn order to get an instance of MetadataImplementor, the workaround is to register an instance of \nSessionFactoryBuilderFactory\n through Java's \nServiceLoader\n facility. This registered service's \ngetSessionFactoryBuilder\n method is then invoked by \nMetadataImplementor\n with an instance of itself, when hibernate is bootstrapped. The code references are below:\n\nService Loading\n\nInvocation of getSessionFactoryBuilder\n\nSo, ultimately to get an instance of MetadataImplementor, you have to implement SessionFactoryBuilderFactory and register so ServiceLoader can recognize this service:\n",
+    "chunk_id": "so-34612019-001"
+  },
+  {
+    "id": "so-18758347",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/18758347/hibernate-returns-bigintegers-instead-of-longs",
+    "title": "Hibernate returns BigIntegers instead of longs",
+    "content": "This is my Sender entity\n\n@Entity\npublic class Sender {\n    @Id\n    @GeneratedValue(strategy = GenerationType.AUTO)\n    private long senderId;\n...\n\n...\n\n    public long getSenderId() {\n            return senderId;\n    }\n\n    public void setSenderId(long senderId) {\n            this.senderId = senderId;\n    }\n}\n",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "long-integer",
+      "biginteger"
+    ],
+    "solution": "The default for \".list()\" in hibernate appears to be BigInteger return types for Numeric.  Here's one work around:\n\nsession.createSQLQuery(\"select column as num from table\")\n  .addScalar(\"num\", StandardBasicTypes.LONG).list();",
+    "chunk_id": "so-18758347-001"
+  },
+  {
+    "id": "so-29862053",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29862053/spring-cache-null-key-returned-for-cache-operation",
+    "title": "spring cache - Null key returned for cache operation",
+    "content": "I have been working with Spring Cache Abstraction and Ehcache. I'm using the \n@Cacheable\n annotation on a target method like so:\n\n@Component\npublic class DataService {\n    @Cacheable(value=\"movieFindCache\", key=\"#name\")\n    public String findByDirector(String name) {\n        return \"hello\";\n    }\n}\n\nThis is my JUnit test:\n\npublic class ServiceTest extends AbstractJUnit4SpringContextTests{\n\n    @Resource\n    private DataService dataService;\n\n    @Test",
+    "tags": [
+      "java",
+      "spring",
+      "ehcache"
+    ],
+    "solution": "you could try to replace key with #p0\n\n@Component\npublic class DataService {\n    @Cacheable(value=\"movieFindCache\", key=\"#p0\")\n    public String findByDirector(String name) {\n        return \"hello\";\n    }\n}\n\nreference from\n\nSpring Cache Abstraction VS interfaces VS key param (\"Null key returned for cache operation\" error)",
+    "chunk_id": "so-29862053-001"
+  },
+  {
+    "id": "so-55308918",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/55308918/spring-security-5-calling-oauth2-secured-api-in-application-runner-results-in-il",
+    "title": "Spring Security 5 Calling OAuth2 Secured API in Application Runner results in IllegalArgumentException",
+    "content": "Given the following code, is it possible to call a Client Credentials secured API in an application runner?\n\n@Bean\npublic ApplicationRunner test(\n    WebClient.Builder builder,\n    ClientRegistrationRepository clientRegistrationRepo, \n    OAuth2AuthorizedClientRepository authorizedClient) {\n        return args -> {\n            try {\n                var oauth2 =\n                    new ServletOAuth2AuthorizedClientExchangeFilterFunction(\n                        clientRegistrationRepo,\n                        authorizedClient);\n                oauth2.setDefaultClientRegistrationId(\"test\");\n                var response = builder\n                    .apply(oauth2.oauth2Configuration())\n                    .build()\n                    .get()\n                    .uri(\"test\")\n                    .retrieve()",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "spring-webflux"
+    ],
+    "solution": "Since I also stumbled across this problem I'll elaborate a bit on \nDarren Forsythe's\n updated answer to make it easier for others to find:\n\nThe issue submitted by the OP resulted in an implementation of \nOAuth2AuthorizedClientManager\n that is capable of \n\noperating outside of a HttpServletRequest context, e.g. in a scheduled/background thread and/or in the service-tier\n\n(\nfrom the official docs\n)\n\nSaid implementation, the \nAuthorizedClientServiceOAuth2AuthorizedClientManager\n, is passed to the \nServletOAuth2AuthorizedClientExchangeFilterFunction\n to replace the default one.\n",
+    "chunk_id": "so-55308918-001"
+  },
+  {
+    "id": "so-23638462",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/23638462/how-do-i-add-method-based-security-to-a-spring-boot-project",
+    "title": "How do I add method based security to a Spring Boot project?",
+    "content": "I want to add method based security to a Spring Boot project.\n\nIt seemed that all I would need is to add \nPermissionEvaluator\n and \nMethodSecurityExpressionHandler\n beans, annotate my \nWebSecurityConfigurerAdapter\n with \n@EnableGlobalMethodSecurity(prePostEnabled = true)\n and the method with \n@PreAuthorize(\"isAuthenticated() and hasPermission(#param, 'somePermissionName')\")\n.\n\nBut after adding a \nPermissionEvaluator\n bean\n\n@Bean\npublic PermissionEvaluator permissionEvaluator() {",
+    "tags": [
+      "java",
+      "spring",
+      "spring-security",
+      "spring-boot"
+    ],
+    "solution": "Try putting the \nPermissionEvaluator\n in a separate \n@Configuration\n class. You appear to be forcing it to be instantiated before the \nServletContext\n is ready (Spring Security filters have to be created super early so this can happen).",
+    "chunk_id": "so-23638462-001"
+  }
+]
