@@ -1,0 +1,429 @@
+[
+  {
+    "id": "so-1363310",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/1363310/auto-wiring-a-list-using-util-schema-gives-nosuchbeandefinitionexception",
+    "title": "Auto-wiring a List using util schema gives NoSuchBeanDefinitionException",
+    "content": "I have a bean that i want to inject with a named list using Spring util namespace  \n<util:list id=\"myList\">\n but Spring is looking for a collection of beans of type String instead. My broken test is:\n\n@RunWith(SpringJUnit4ClassRunner.class)\n@ContextConfiguration\npublic class ListInjectionTest {\n\n    @Autowired @Qualifier(\"myList\") private List<String> stringList;\n\n    @Test public void testNotNull() {\n        TestCase.assertNotNull(\"stringList not null\", stringList);\n    }\n}\n\nMy context is:\n\n<beans xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n   xmlns:util=\"http://www.springframework.org/schema/util\"\n   xmlns=\"http://www.springframework.org/schema/beans\"",
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "solution": "This is due to a rather obscure part of @Autowired's behaviour, specified in \n3.11.2. @Autowired\n:\n\nIt is also possible to provide all\n  beans of a particular type from the\n\nApplicationContext\n by adding the\n  annotation to a field or method that\n  expects an array of that type...\n\nThe same applies for typed collections...\n\nIn other words, by saying \n@Autowired @Qualifier(\"myList\") List<String>\n, you're actually asking for \"give me the list of all beans of type \njava.lang.String\n that have the qualifier \"myList\". \n",
+    "chunk_id": "so-1363310-001"
+  },
+  {
+    "id": "so-32081578",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32081578/spring-security-nosuchbeandefinitionexception-no-qualifying-bean-of-type-org",
+    "title": "spring security: NoSuchBeanDefinitionException: No qualifying bean of type [org.springframework.security.config.annotation.ObjectPostProcessor] found",
+    "content": "I'm trying to add spring-security to my rest app.\nI followed the tutorial (\nhttps://spring.io/guides/tutorials/spring-security-and-angular-js/\n) on spring website to do it but there it uses spring-boot component which I don't want to use, maybe problem is here.\n\nMy security configuration is here:\n\n@Configuration\n@Order(2147483636)\npublic class SecurityConfiguration extends WebSecurityConfigurerAdapter {\n@Override\nprotected void configure(HttpSecurity http) throws Exception {\n    http.httpBasic().and().authorizeRequests()\n            .antMatchers(\"/rest\", \"/\").permitAll().anyRequest()\n            .authenticated().and().csrf()\n            .csrfTokenRepository(csrfTokenRepository()).and()\n            .addFilterAfter(csrfHeaderFilter(), CsrfFilter.class);\n}\n\nprivate Filter csrfHeaderFilter() {",
+    "tags": [
+      "java",
+      "spring",
+      "spring-security"
+    ],
+    "solution": "The problem is that you do not have \n@EnableWebSecurity\n annotation on your SecurityConfiguration class.\n\nThis would have been added by Spring-boot automatically, however since you opted for not using Spring-boot \nthis needs to be taken care of manually\n.",
+    "chunk_id": "so-32081578-001"
+  },
+  {
+    "id": "so-39173982",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/39173982/what-is-a-nosuchbeandefinitionexception-and-how-do-i-fix-it",
+    "title": "What is a NoSuchBeanDefinitionException and how do I fix it?",
+    "content": "Please explain the following about \nNoSuchBeanDefinitionException\n exception in Spring:\n\nWhat does it mean?\n\nUnder what conditions will it be thrown?\n\nHow can I prevent it?\n\nThis post is designed to be a comprehensive Q&A about occurrences of \nNoSuchBeanDefinitionException\n in applications using Spring.",
+    "tags": [
+      "java",
+      "spring",
+      "applicationcontext"
+    ],
+    "solution": "The \njavadoc of \nNoSuchBeanDefinitionException\n explains\n\nException thrown when a \nBeanFactory\n is asked for a bean instance for\nwhich it cannot find a definition. This may point to a non-existing\nbean, a non-unique bean, or a manually registered singleton instance\nwithout an associated bean definition.\n\nA \nBeanFactory\n is basically the abstraction representing \nSpring's Inversion of Control container\n. It exposes beans internally and externally, to your application. When it cannot find or retrieve these beans, it throws a \nNoSuchBeanDefinitionException\n.\n",
+    "chunk_id": "so-39173982-001"
+  },
+  {
+    "id": "so-33229793",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/33229793/how-to-add-multiple-application-properties-files-in-spring-boot",
+    "title": "How to add multiple application.properties files in spring-boot?",
+    "content": "I have a Spring boot application that is divided in several modules.\nThe main module runs the application and has an \napplication.properties\n file in the resources folder. I'm wondering if I can add another properties file in a submodule to separate properties that are belonging to that module and how to make this working (because it is not).\n\n+main_module\n  +src\n    +main\n      +java\n        +my/package/Application.java\n        +resources/application.properties\n+support_module\n  +src\n    +main\n      +java\n        +resources/application.properties\n\nSo, this is the current situation. Clearly the properties file in the module \nsupport_module\n is not read causing a ",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "solution": "What you are trying to do will not work when using Maven or Gradle. The reason is that when the artifact (jar most likely since you are using Spring Boot) is created, there will only be one \napplication.properties\n file in the root.\n\nI suggest you either change the name of the properties file on the support module and then configure Spring Boot to look for that file as well (take a look at \nthis\n or \nthis\n answer for pointers), or use some kind of merging task for your build tool (something like \nthis\n perhaps)",
+    "chunk_id": "so-33229793-001"
+  },
+  {
+    "id": "so-2387431",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/2387431/spring-autowiring-class-vs-interface",
+    "title": "Spring Autowiring class vs. interface?",
+    "content": "I have this Spring config:\n\n<bean id=\"boo\" class=\"com.x.TheClass\"/>\n\nThe class \nTheClass\n implements \nTheInterface\n.  Then I have this (hypothetical) Java code: \n\n@Autowired\nTheInterface x;\n\n@Autowired\nTheClass y;\n\nThe autowiring of \nTheInterface\n works but the autowiring of \nTheClass",
+    "tags": [
+      "java",
+      "spring",
+      "dependency-injection",
+      "autowired"
+    ],
+    "solution": "Normally, both will work, you can autowire interfaces or classes.\n\nThere's probably an autoproxy generator somewhere in your context, which is wrapping your \nboo\n bean in a generated proxy object. This proxy object will implement \nTheInterface\n, but will not be a \nTheClass\n. When using autoproxies, you need to program to the interface, not the implementation.\n\nThe likely candidate is transactional proxies - are you using Spring transactions, using AspectJ or \n@Transactional\n?",
+    "chunk_id": "so-2387431-001"
+  },
+  {
+    "id": "so-10650196",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/10650196/how-to-configure-mappingjacksonhttpmessageconverter-while-using-spring-annotatio",
+    "title": "How to configure MappingJacksonHttpMessageConverter while using spring annotation-based configuration?",
+    "content": "I was unreasonable enough to went into configuring spring beans via annotations and not pure xml beans and now I'm facing the consequences.\n\nI configure REST channels using\n\n<mvc:annotation-driven />\n\nNow I want simply configure the \nMappingJacksonHttpMessageConverter\n to output to JSON only this fields that have non-null values. I've tried the following:\n\n<bean id=\"jsonHttpMessageConverter\"\n    class=\"org.springframework.http.converter.json.MappingJacksonHttpMessageConverter\">\n    <property name=\"prefixJson\" value=\"false\" />\n    <property name=\"supportedMediaTypes\" value=\"application/json\" />\n    <property name=\"objectMapper\">\n        <bean class=\"org.codehaus.jackson.map.ObjectMapper\">\n            <property name=\"serializationInclusion\" value=\"NON_NULL\"/>\n        </bean>\n    </property>\n</bean>",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "annotations",
+      "jackson"
+    ],
+    "solution": "Use the \nWebMvcConfigurer.configureMessageConverters()\n method:\n\nConfigure the HttpMessageConverters to use [...] If no message converters are added to the list, default converters are added instead.\n\nWith \n@Configuration\n you have:\n\n@Configuration\nclass MvcConf extends WebMvcConfigurationSupport {\n    protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {\n        converters.add(converter());\n        addDefaultHttpMessageConverters(converters);\n    }\n\n    @Bean\n    MappingJacksonHttpMessageConverter converter() {\n        MappingJacksonHttpMessageConverter converter = new MappingJacksonHttpMessageConverter()",
+    "chunk_id": "so-10650196-001"
+  },
+  {
+    "id": "so-46439505",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/46439505/autowiring-buildproperties-bean-from-gradle-nosuchbeandefinitionexception",
+    "title": "Autowiring BuildProperties bean from Gradle - NoSuchBeanDefinitionException",
+    "content": "I am trying to obtain the version in my Java application from the Gradle build file. I am following the instructions here;\n\nhttps://docs.spring.io/spring-boot/docs/current/reference/html/howto-build.html\n\nbuild.gradle\n\nbuildscript {\n    repositories {\n        mavenCentral()\n    }\n    dependencies {\n        classpath(\"org.springframework.boot:spring-boot-gradle-\n        plugin:1.5.7.RELEASE\")\n    }\n}\n\nproject.version = '0.1.0'\n\napply plugin: 'java'\napply plugin: 'war'",
+    "tags": [
+      "spring",
+      "spring-boot",
+      "gradle",
+      "autowired"
+    ],
+    "solution": "The problem I had may have been different, but I landed here trying to google the solution, so I'll post this here in case anybody else runs into the same problem. My error message was:\n\nUnsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type 'org.springframework.boot.info.BuildProperties' available\n\nIt was only when trying to run within IntelliJ, not when run with gradle from the command line. (AND this is possibly specific to SpringBoot)\n\nI just needed to set \"Delegate IDE build/run actions to gradle\" from within \"Build, Execution, Deployment->Build Tools->Gradle\" which then got the \"bootBuildInfo\" task to run when building from the IDE.",
+    "chunk_id": "so-46439505-001"
+  },
+  {
+    "id": "so-24287024",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/24287024/how-to-enforce-loading-order-of-spring-configuration-classes",
+    "title": "How to enforce loading order of spring configuration classes?",
+    "content": "I'm working with spring-boot on a multi module project (maven). Each module has it's own @Configuration class. Basically I do have the following layout\n\nModule foo-embedded (runs just calls the SpringApplication.run()) method:\n\n@Configuration\n@EnableAutoConfiguration\n@ComponentScan(\"de.foobar.rootpackage\")\n@Import({ApplicationConfig.class, RepositoryConfig.class, SecurityConfig.class})\npublic class FooApplication {\n\n    public static void main(String[] args) throws Exception {\n        SpringApplication.run(FooApplication.class, args);\n    }\n}\n\nModule foo-common (contains all beans and spring-data-jpa initialization config)\n\n@Configuration\n@EnableJpaRepositories\n@EnableTransactionManagement(entityManagerFactoryRef=\"entityManagerFactory\")",
+    "tags": [
+      "java",
+      "spring",
+      "maven",
+      "spring-boot"
+    ],
+    "solution": "So I was able to solve this. As it pointed out it had nothing to do with the loading order of the configuration classes (which was my first thought).\n\nAs you may notice, the only Configuration that had a \n@ComponentScan\n annotation was the FooApplication.class\nSpring was not able to find the Repositories, as it didn't know where to look for. Providing the basePackages attribute like this: \n\n@EnableJpaRepositories(basePackages = \"de.foobar.rootpackage\")\n\nat the TestRepositoryConfig.class did the trick here.",
+    "chunk_id": "so-24287024-001"
+  },
+  {
+    "id": "so-12324082",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/12324082/utilmap-in-spring-picking-up-every-bean-of-the-map-type",
+    "title": "util:map in Spring picking up every bean of the map type",
+    "content": "I have a Spring map problem that is bringing me to tears.\n\nMy spring looks like this:\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<beans\n    xmlns=\"http://www.springframework.org/schema/beans\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:util=\"http://www.springframework.org/schema/util\"\n    xsi:schemaLocation=\"\n        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd\n        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd\n    \">\n\n   <util:map id=\"mockMap\">\n        <entry key=\"userTest1\" value=\"test1\"/>\n        <entry key=\"userTest2\" value=\"test2\"/>\n        <entry key=\"userTest3\" value=\"test6\"/>\n    </util:map>\n</beans>",
+    "tags": [
+      "spring",
+      "dictionary"
+    ],
+    "solution": "Remove @Autowired and only use the @Resource(name=\"mockMap\")",
+    "chunk_id": "so-12324082-001"
+  },
+  {
+    "id": "so-32020249",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32020249/obtaining-handle-to-entitymanager-in-spring-boot",
+    "title": "Obtaining handle to EntityManager in Spring Boot",
+    "content": "Is there any way to get a handle to the EntityManager for a given entity object? I'm using spring boot 1.2.3 with JPA starter and i'm further explicitly configuring multiple data sources with \n@configuration\n\nI've checked \n[resolved]SPRING BOOT access to entityManager\n and it doesn't seem to answer the question. \n\nThanks.\n\nEDIT: I added description of how my data sources are defined:\n\n@Component\n@Configuration\npublic class DataSources {\n    @Bean\n    @Primary\n    @ConfigurationProperties(prefix=\"first.datasource\")\n    public DataSource getPrimaryDataSource() {\n        return DataSourceBuilder.create().build();\n    }",
+    "tags": [
+      "java",
+      "spring-boot",
+      "jpa",
+      "spring-data-jpa",
+      "spring-data"
+    ],
+    "solution": "It depends how you've been configuring this but have you tried to \ninject\n the \nEntityManager\n with a qualifier that corresponds to the factory that created it?\n\nHere is \na sample project with two data sources\n. If you want to inject the \nEntityManager\n for order, just do the following in any Spring bean of the project\n\n@Service\npublic class FooService {\n\n    private final EntityManager entityManager;\n\n    @Autowired\n    public FooService(@Qualifier(\"orderEntityManager\") EntityManager entityManager) {\n        ...",
+    "chunk_id": "so-32020249-001"
+  },
+  {
+    "id": "so-9819994",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/9819994/spring-autowire-and-prototype-scope",
+    "title": "Spring autowire and prototype scope",
+    "content": "I have a class named Bar with the following annotation: \n\n@Configurable(autowire = Autowire.BY_TYPE)\n\nOn a private member I have the following annotation:\n\n@Autowired(required = true)\nprivate Foo foo;\n\nIn the spring configuration I have a bean of class Foo. If the bean is defined with \nscope=\"prototype\"\n it doesn't work and I get the following exception:\n\nNoSuchBeanDefinitionException: No matching bean of type Foo found for dependency: \n      expected at least 1 bean which qualifies as autowire candidate for this dependency \n\nOnce I change the injected bean scope to \n\"singleton\"\n it works fine.\n",
+    "tags": [
+      "java",
+      "spring",
+      "annotations",
+      "inversion-of-control"
+    ],
+    "solution": "The following link provide alternative solutions for such scenarios:\n\nhttp://whyjava.wordpress.com/2010/10/30/spring-scoped-proxy-beans-an-alternative-to-method-injection/\n\nThe link talks about adding to Foo:\n\n@Component\n@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, value = \"prototype\")\nclass Foo\n\nWhich will cause a new instance for every call.",
+    "chunk_id": "so-9819994-001"
+  },
+  {
+    "id": "so-70622260",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/70622260/webtestclient-throws-no-qualifying-bean-as-autowire-candidate",
+    "title": "WebTestClient throws \"No qualifying bean ... as autowire candidate\"",
+    "content": "I currently wrote a put request I wanted to test via WebTestClient. I followed some tutorials and adapted my case to it. Testing the request results in an error:\n\n\"NOSuchBeanDefinitionException: No qualifying bean of type 'org.springframework.test.web.reactive.server.WebTestClient' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {@org.springframework.beans.factory.annotation.Autowired(required=true)}\"\n\nI looked up some solutions on SO like this one: \nCant autowire `WebTestClient` - no auto configuration\n but couldn't make it work, despite of the hints there.\n\nHere is the test code:\n\n@SpringBootTest\n@AutoConfigureWebTestClient\npublic class DemonstratorApplicationTests {\n\nprivate P4uServiceImpl p4uService = new P4uServiceImpl();\n\n@Autowired\nWebTestClient webTestClient;\n\n@MockBean",
+    "tags": [
+      "spring-boot",
+      "webtestclient"
+    ],
+    "solution": "The following works:\n\n<dependencies>\n    <dependency>\n        <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-web</artifactId>\n    </dependency>\n    <dependency>\n        <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-webflux</artifactId>\n    </dependency>\n\n    <dependency>\n        <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-test</artifactId>\n        <scope>test</scope>\n    </dependency>\n</dependencies>\n\n@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)",
+    "chunk_id": "so-70622260-001"
+  },
+  {
+    "id": "so-21319450",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/21319450/spring-root-application-context-and-servlet-context-confusion",
+    "title": "Spring root application context and servlet context confusion",
+    "content": "I know that I need to register classes annotated with \n@Controller\n in my servlet context to make my webapp accesible. Usually, I will do it the following way:\n\n@Configuration\n@EnableWebMvc\n@ComponentScan({\"foo.bar.controller\"})\npublic class WebConfig extends WebMvcConfigurerAdapter {\n    //other stuff like ViewResolvers, MessageResolvers, MessageConverters, etc.\n}\n\nAll other configuration classes I added to my root application context. Here is how my dispatcher initializer usually look like:\n\npublic class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {\n\n    @Override\n    protected Class<?>[] getRootConfigClasses() {\n        return new Class<?>[] { RootConfig.class, ServiceConfig.class };\n    }\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "websocket"
+    ],
+    "solution": "Most Spring MVC applications have one root context containing all service layer / DAO layer beans, and one servlet context per spring dispatcher servlet of the application, which contains (at least) the controllers of each servlet.\n\nThe idea being that is that one application might have several servlet dispatchers, for example one for URL \n/shopping/*\n and the other for URL \n/reporting/*\n, each with it's own set of controllers.\n\nThe controllers of one servlet dispatcher are isolated from each other, meaning although they are also Spring beans, they cannot be injected in each other.\n\nService layer and DAO beans in the root context are visible in all servlet contexts, so Service layer beans can be injected in any controller, but not the other way around.\n\nThe root context is said to be the parent of the controller servlet context/contexts.\n\nIt's all meant to be a mechanism of isolating groups of beans from each other to ensure no unmeant dependencies are possible.\n\nGiven this and going through the questions:\n\nIf I'm trying to create TimeServiceWs bean inside root application context, as expected it doesn't see SimpMessagingTemplate bean and throws NoSuchBeanDefinitionException:\n Move the SimpleMessagingTemplate to the root context, it's a bean like a DAO that can be useful anywhere in the application so it should be in the shared root context.",
+    "chunk_id": "so-21319450-001"
+  },
+  {
+    "id": "so-53140135",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/53140135/cannot-resolve-reference-to-bean-entitymanagerfactory-while-setting-constructo",
+    "title": "Cannot resolve reference to bean 'entityManagerFactory' while setting constructor argument;",
+    "content": "I am getting this error in my code.\n\norg.springframework.beans.factory.BeanCreationException: Error\n  creating bean with name 'roleRepository': Cannot create inner bean\n  '(inner bean)#7540dc57' of type\n  [org.springframework.orm.jpa.SharedEntityManagerCreator] while setting\n  bean property 'entityManager'; nested exception is\n  org.springframework.beans.factory.BeanCreationException: Error\n  creating bean with name '(inner bean)#7540dc57': Cannot resolve\n  reference to bean 'entityManagerFactory' while setting constructor\n  argument; nested exception is\n  org.springframework.beans.factory.NoSuchBeanDefinitionException: No\n  bean named 'entityManagerFactory' available\n\nI saw these: \n\nCannot resolve reference to bean 'entityManagerFactory' while setting constructor argument\n\nNoSuchBeanDefinitionException: No bean named 'entityManagerFactory' available\n",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-mvc",
+      "spring-data-jpa"
+    ],
+    "solution": "I found the answer.\n\nCheckout the \ndocumentation\n for \n@EnableJpaRepositories\n annotation.\n\nIn the \nOptional Element Summary\n, you will see this:\n\nString entityManagerFactoryRef\n\nConfigures the name of the EntityManagerFactory bean definition to be used to create repositories discovered through this annotation.\n\nGo down the page to the \ndetails\n and you will see this:\n",
+    "chunk_id": "so-53140135-001"
+  },
+  {
+    "id": "so-3259099",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/3259099/how-to-easymock-a-call-to-a-method-that-returns-a-wildcarded-generic",
+    "title": "How to EasyMock a call to a method that returns a wildcarded generic?",
+    "content": "We're looking at switching to Spring 3.0 and running into problems with the intersection of Spring 3.0, EasyMock, and Java Generics.\n\nIn one place, we're mocking a Spring 3.0 AbstractBeanFactory, specifically this method:\n\npublic Class<?> getType(String name) throws NoSuchBeanDefinitionException { ... }\n\nUnder earlier versions of Spring, this returns a non-generic and all was well.  With the generic, however, we run into trouble with this:\n\nexpect(mockBeanFactory.getType(CLASS_NAME)).andReturn(SOME_CLASS);\n\nBecause \ngetType\n returns \nClass<?>\n, \nandReturn\n requires \nClass<?>\n as a parameter, which simply doesn't work properly.\n",
+    "tags": [
+      "java",
+      "spring",
+      "generics",
+      "wildcard",
+      "easymock"
+    ],
+    "solution": "I've run into a problem like this before, with Mockito.  I'm not sure why it happens yet.  You can cast the expect(..) argument to the non-generic Class type, ala\n\nexpect((Class) mockBeanFactory.getType(CLASS_NAME)).andReturn(SOME_CLASS);\n\nThen you'll just have a warning, which you can suppress if you want.  Not a very elegant solution; I'm going to spend a few more minutes looking at it.",
+    "chunk_id": "so-3259099-001"
+  },
+  {
+    "id": "so-9118909",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/9118909/activating-spring-profile-active-jvm-arguments-in-gwt-hosted-mode",
+    "title": "Activating Spring Profile active JVM arguments in GWT hosted mode",
+    "content": "I have a spring profile configuration as shown below\n\n<beans profile=\"dev\">\n    <bean id=\"dataSource\" class=\"com.mchange.v2.c3p0.ComboPooledDataSource\">\n        <property name=\"driverClass\" value=\"${db.driverClassName}\" />\n        <property name=\"jdbcUrl\" value=\"dfgdfg\" />\n        <property name=\"user\" value=\"${db.username}\" />\n        <property name=\"password\" value=\"${db.password}\" />\n    </bean>\n</beans>\n\n<beans profile=\"prod\">\n    <jee:jndi-lookup id=\"dataSource\" jndi-name=\"jdbc/Test\"/>\n</beans>\n\nI am trying to make one of this active via the VM argument \n-Dspring.profiles.active=\"dev\"\n . This works in Tomcat and so does the \ncontext-param\n route in Hosted mode via the gwt-maven-plugin but I can't get the VM arguments to work . I tried ",
+    "tags": [
+      "spring",
+      "gwt",
+      "maven",
+      "maven-3"
+    ],
+    "solution": "No, simply gwt:maven plugin is kind of strange and it doesn't pass system properties to the launched JVM instance, and the only way to pass parameters is to put it into \n<extraJvmArgs>\n in plugin configuration e.g. in your case you have to add following to the configuration tag of gwt plugin: \n\n<extraJvmArgs>-Dspring.profiles.active=dev</extraJvmArgs>\n\nGod knows why this works only this way, I wish there were some other normal way.",
+    "chunk_id": "so-9118909-001"
+  },
+  {
+    "id": "so-44927085",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/44927085/prevent-rabbitlistener-in-spring-rabbit-from-trying-to-connect-to-server-during",
+    "title": "Prevent @RabbitListener in spring-rabbit from trying to connect to server during integration test",
+    "content": "I want to run some acceptance tests for my services that are using rabbitMq but I want to ignore all that require inter-service communication (amqp). \n\nThe problem however is that Spring tries to connect to the (non-exisiting) rabbit host on startup so it can register its consumers. It does that for each method that is annotated with \n@RabbitListener\n which can get quite annoying with the long timeout this has if I have more than one listener in my service.\n\nHow can I reduce this timeout or even prevent @RabbitListener connection all together?\n\nOur (simplified) Rabbit Config:\n\n@Configuration\n@EnableRabbit\npublic class RabbitMqConfig {\n\n    public RabbitMqConfig(\n            @Value(\"${rabbitmq.host}\") String rabbitHost,\n            @Value(\"${rabbitmq.port}\") int rabbitPort,\n            @Value(\"${exchange.name}\") String exchange) {\n        this.rabbitHost = rabbitHost;\n        this.rabbitPort = rabbitPort;",
+    "tags": [
+      "java",
+      "spring",
+      "rabbitmq",
+      "spring-rabbit"
+    ],
+    "solution": "Thanks for your input Gary. \nI already found a solution that works for me. For some reason the connection timeout for the Consumer initialization is not exposed in the \nCachingConnectionFactory\n I used nor is the property used that I tried (\nspring.rabbitmq.connection-timeout\n).\n\nWhat I do now is initialize the base ConnectionFactory and pass it to the CachingConnectionFactory (Having of course no clue where the difference is but that is the case most of the time with spring):\n\n  @Bean\n  public ConnectionFactory connectionFactory() {\n    com.rabbitmq.client.ConnectionFactory connectionFactory = new com.rabbitmq.client.ConnectionFactory();\n    connectionFactory.setConnectionTimeout(this.connectionTimeout);\n    connectionFactory.setHost(this.rabbitHost);\n    connectionFactory.setPort(this.rabbitPort);\n    CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(\n        connectionFactory);\n    return cachingConnectionFactory;\n  }\n",
+    "chunk_id": "so-44927085-001"
+  },
+  {
+    "id": "so-49561025",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/49561025/spring-autoconfiguration-failing-with-jsontest",
+    "title": "Spring Autoconfiguration failing with JsonTest",
+    "content": "Using \nspring and its testing utilities\n, I want to create a slice test to check the serialization of my model.\n\nThere are the dependencies that I'm using:\n\n<dependency>\n    <groupId>org.springframework.boot</groupId>\n    <artifactId>spring-boot-starter-test</artifactId>\n    <version>2.0.0.RELEASE</version>\n</dependency>    \n<dependency>\n    <groupId>com.fasterxml.jackson.core</groupId>\n    <artifactId>jackson-core</artifactId>\n    <version>2.9.4</version>\n</dependency>   \n<dependency>\n    <groupId>com.fasterxml.jackson.core</groupId>\n    <artifactId>jackson-annotations</artifactId>\n    <version>2.9.4</version>",
+    "tags": [
+      "java",
+      "spring",
+      "unit-testing",
+      "spring-boot"
+    ],
+    "solution": "There's no \nObjectMapper\n bean in the context which prevents any \nJacksonTester\ns from being created. You can see this in the auto-configuration report:\n\nJsonTestersAutoConfiguration.JacksonJsonTestersConfiguration#jacksonTesterFactoryBean:\n      Did not match:\n         - @ConditionalOnBean (types: com.fasterxml.jackson.databind.ObjectMapper; SearchStrategy: all) did not find any beans of type com.fasterxml.jackson.databind.ObjectMapper (OnBeanCondition)\n\nThere's no \nObjectMapper\n bean in the context as its auto-configuration uses \nJackson2ObjectMapperBuilder\n to create the \nObjectMapper\n and \nJackson2ObjectMapperBuilder\n, which is part of \nspring-web",
+    "chunk_id": "so-49561025-001"
+  },
+  {
+    "id": "so-42985240",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/42985240/spring-boot-kafka-unable-to-start-consumer-due-to-nosuchbeandefinitionexception",
+    "title": "Spring Boot Kafka: Unable to start consumer due to NoSuchBeanDefinitionException",
+    "content": "With in my spring boot service while trying to start a kafka consumer seeing NoSuchBeanDefinitionException and unable to start the service itself. \n\nBelow is my bean class which has all the required beans created for Kafka configuration\n\nSpring Boot Version: 1.5.2.RELEASE\n\nimport java.util.HashMap;\nimport java.util.Map;\n\nimport org.apache.kafka.clients.consumer.ConsumerConfig;\nimport org.apache.kafka.common.serialization.Deserializer;\nimport org.apache.kafka.common.serialization.StringDeserializer;\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.kafka.annotation.EnableKafka;\nimport org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;\nimport org.springframework.kafka.core.ConsumerFactory;\nimport org.springframework.kafka.core.DefaultKafkaConsumerFactory;\nimport org.springframework.kafka.support.serializer.JsonDeserializer;",
+    "tags": [
+      "spring",
+      "apache-kafka",
+      "kafka-consumer-api",
+      "spring-kafka"
+    ],
+    "solution": "Change your \nkafkaListenerContainerFactory1\n bean name to \nkafkaListenerContainerFactory\n.\n\nThe auto config factory is looking for a \nConsumerFactory<Object, Object>\n which doesn't match yours and it is\n\n@ConditionalOnMissingBean(name = \"kafkaListenerContainerFactory\")\n\nWhereas the consumer factory is...\n\n@ConditionalOnMissingBean(ConsumerFactory.class)\npublic ConsumerFactory<?, ?> kafkaConsumerFactory() {\n\nOr, disable Kafka auto configuration.",
+    "chunk_id": "so-42985240-001"
+  },
+  {
+    "id": "so-28925311",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28925311/spring-how-to-inject-concrete-interface-implementation",
+    "title": "Spring - how to inject concrete interface implementation?",
+    "content": "I need to inject by @Autowired concrete implementation of a service class.\n\nService interface:\n\npublic interface PostService {\n...\n}\n\nImplementation:\n\n@Service(\"postServiceImpl\")\npublic class PostServiceImpl implements PostService {\n...\n}\n\nMethods in the service are with @ Transactional annotation\n\nAnd now I want to inject postServiceImpl to my controller - because I need to use one method from the implementation, that is not in the interface:\n\n@Autowired",
+    "tags": [
+      "java",
+      "spring",
+      "service",
+      "dependency-injection",
+      "autowired"
+    ],
+    "solution": "Since your methods are annotated \n@Transactional\n, spring will create proxy at runtime, to inject transaction management code. By default Spring uses \nJDK Dynamic Proxy\n for proxying mechanism, which proxies based on interfaces.\n\nSo, in this case, spring creates another class which implements \nPostService\n interface, and creates bean of that class. Definitely that cannot be autowired to \nPostServiceImpl\n, as those are siblings. However, if you really want to autowire on class, you can force spring to use \nCGLib\n proxy instead, which proxies using subclassing. That you can do by setting \nproxyTargetClass=true\n in your \n@EnableTransactionManagement\n annotation, if you're using Java based config.",
+    "chunk_id": "so-28925311-001"
+  },
+  {
+    "id": "so-13084229",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/13084229/how-to-inject-a-bean-only-when-it-exists",
+    "title": "How to inject a bean only when it exists",
+    "content": "I have the following structure of spring context files ( \n->\n stands for 'includes') :\n\nA1.xml -> B.xml & C.xml\nA2.xml -> B.xml\n\nC.xml\n defines a bean \nc\n\nB.xml\n defines a bean \nb\n with a dependency on \nc\n\nObviously this fails for A2, because there is no \nc\n defined in the context ",
+    "tags": [
+      "java",
+      "spring",
+      "option-type",
+      "spring-el"
+    ],
+    "solution": "The #root object of the SpEL Expression is a BeanExpressionContext, you can invoke the \ngetObject()\n method on that context; it returns null if the bean is not declared...\n\n<property name=\"bar\" value=\"#{getObject('bar')}\" />\n\nNote: you use \nvalue\n not \nref\n because it returns the bean, not the bean definition.\n\nHere's the code from \ngetObject()\n\npublic Object getObject(String key) {\n    if (this.beanFactory.containsBean(key)) {\n        return this.beanFactory.getBean(key);\n    }\n    else if (this.scope != null){",
+    "chunk_id": "so-13084229-001"
+  },
+  {
+    "id": "so-44296021",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/44296021/nosuchbeandefinitionexception-no-qualifying-bean-of-type-int",
+    "title": "NoSuchBeanDefinitionException: No qualifying bean of type 'int'",
+    "content": "I am a complete beginner in Spring.\n\nI am right now trying to see if I can test RequestMapping, RequestBody, RequestResponse and RestTemplate.\n\nI wanted to receive this object as response:\n\npublic interface TestObject {\n    public int getId();\n    public String getValue();\n}\n\n@Component\npublic class TestObjectImpl {\n\n    private int id;\n    private String value;\n\n    public TestObjectImpl(int id, String value){\n        this.id = id;\n        this.value = value;",
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "solution": "You can Injecting simple properties and can easily access the properties with @Value annotation and placeholders:\n\n@Component\npublic class TestObjectImpl {\n    private int id;\n    private String value;\n\n    @Autowired\n    public TestObjectImpl(@Value(\"${prop1}\")int id, @Value(\"${prop2}\")String value){\n        this.id = id;\n        this.value = value;\n    }\n\n    public int getId(){\n        return id;\n    }\n\n    public String getValue(){\n        return value;\n    }",
+    "chunk_id": "so-44296021-001"
+  },
+  {
+    "id": "so-28100809",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28100809/nosuchbeandefinitionexception-expected-at-least-1-bean-which-qualifies-as-autowi",
+    "title": "NoSuchBeanDefinitionException expected at least 1 bean which qualifies as autowire candidate for this dependency",
+    "content": "I know this question has been asked so many times but I'm really having trouble to get over it. I have tried so many combinations by seeing those question but no one seems to fit my case.\n\nThe full log error is the following:\n\norg.springframework.beans.factory.BeanCreationException: Error creating bean with name 'professorController': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire field: private com.personal.online.dao.ProfessorDao com.personal.online.controller.ProfessorController.professorDao; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type [com.personal.online.dao.ProfessorDao] found for dependency: expected at least 1 bean which qualifies as autowire candidate for this dependency. Dependency annotations: {@org.springframework.beans.factory.annotation.Autowired(required=true)}\n    at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:292)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1185)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:537)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:475)\n    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:304)\n    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:228)\n    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:300)\n    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:195)\n    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:700)\n    at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:760)\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:482)\n    at org.springframework.web.servlet.FrameworkServlet.configureAndRefreshWebApplicationContext(FrameworkServlet.java:643)\n    at org.springframework.web.servlet.FrameworkServlet.createWebApplicationContext(FrameworkServlet.java:606)\n    at org.springframework.web.servlet.FrameworkServlet.createWebApplicationContext(FrameworkServlet.java:657)\n    at org.springframework.web.servlet.FrameworkServlet.initWebApplicationContext(FrameworkServlet.java:525)",
+    "tags": [
+      "java",
+      "hibernate",
+      "spring-mvc",
+      "jpa"
+    ],
+    "solution": "Add the package of \nJpaProfessorDao\n to the list of packages to be scanned\n\n<context:component-scan base-package=\"com.personal.online.controller, com.personal.online.dao\" />",
+    "chunk_id": "so-28100809-001"
+  },
+  {
+    "id": "so-53277665",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/53277665/nosuchbeandefinitionexception-in-a-webmvctest-test-class",
+    "title": "NoSuchBeanDefinitionException in a @WebMvcTest test class",
+    "content": "I would like to test my rest endpoint in \nBookRestController\n. I write one test with \n@WebMvcTest\n.\n\n@RunWith(SpringRunner.class)\n@WebMvcTest(BookRestController.class)\npublic class BookRestControllerTest {\n\n    @Autowired\n    private MockMvc mockMvc;\n\n    @MockBean\n    private CategoryService categoryService;\n\n    private ObjectMapper objectMapper = new ObjectMapper();\n\n    @Test\n    public void should_create_new_category_when_try_to_update() throws Exception {",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "spring-boot"
+    ],
+    "solution": "your main application class will load any bean defined, or functionality that enables via annotations.\n\ne.g. \n@EnableSchedling\n, \n@ComponentScan\n, \n@Import\n etc.\n\nWill all load up in a slice test.\n\nSee this documentation for more detail,\n\nhttps://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-testing.html#boot-features-testing-spring-boot-applications-testing-user-configuration\n\nIf you structure your code in a sensible way, your @SpringBootApplication class is used by default as the configuration of your tests.\n\nIt then becomes important not to litter the application’s main class with configuration settings that are specific to a particular area of its functionality.",
+    "chunk_id": "so-53277665-001"
+  },
+  {
+    "id": "so-51341913",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/51341913/spring-boot-controller-test-mock-repository-but-test-actual-service",
+    "title": "Spring boot controller test - mock repository but test actual service",
+    "content": "I'm trying to write a test class in \nSpring boot 2\n where:\n\nI want to test a controller\n\nI want to mock a repository\n\nI want to inject a service as is (i.e. \nwithout\n mocking it)\n\nThe class looks something like:\n\n@RunWith(SpringRunner.class)\n@WebMvcTest(MyController.class)\npublic class MyControllerTest {\n    @Autowired\n    private MockMvc mvc;\n    @MockBean",
+    "tags": [
+      "spring",
+      "spring-boot",
+      "integration-testing"
+    ],
+    "solution": "After consulting the \ndocs\n (I did not read properly in the first instance), as pointed out by \njonsharpe\n, I managed to wrangle a working solution:\n\n@RunWith(SpringRunner.class)\n@SpringBootTest\n@AutoConfigureMockMvc\npublic class MyControllerTest {\n    @Autowired\n    private MockMvc mvc;\n    @MockBean\n    private MyRepositoryInterface myRepository;\n\n    // no need to reference the service explicitly\n\n    // ... tests follow\n}\n",
+    "chunk_id": "so-51341913-001"
+  },
+  {
+    "id": "so-31500794",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31500794/referring-to-configurationproperties-beans-in-spel-expression-in-configuration",
+    "title": "Referring to ConfigurationProperties Beans in SpEL expression in @Configuration bean",
+    "content": "I have this properties class:\n\nimport java.util.List;\nimport org.springframework.boot.context.properties.ConfigurationProperties;\n\n@ConfigurationProperties(\"some\")\n    public class SomeProperties {\n        private List<String> stuff;\n\n        public List<String> getStuff() {\n            return stuff;\n        }\n\n        public void setStuff(List<String> stuff) {\n            this.stuff = stuff;\n        }    \n    }\n\nand I enable configuration properties in an @Configuration class like so:\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-el"
+    ],
+    "solution": "I think the problem that you're facing is that \n@Conditions\n are evaluated when \n@Configuration\n classes are parsed, so there isn't any guarantee that the \nSomeProperties\n bean has been defined. Even if it were defined, you probably don't want it to be initialized early so I'd recommend a different approach.\n\nYou could try \n@ConditionalOnPropety\n, that's the annotation that is used internally by Spring Boot whenever it conditionally wants to enable auto-configuration based on a property. If that's not quite flexible enough you can create your own \nCondition\n and access the \nEnvironment\n directly to tell if the property value is empty. If you want to support flexible binding you can use \nRelaxedPropertyResolver\n. \nHere's an example\n.",
+    "chunk_id": "so-31500794-001"
+  },
+  {
+    "id": "so-28895248",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28895248/spring-boot-no-qualifying-bean-of-type-found-when-autowiring-concrete-clas",
+    "title": "Spring Boot: \"No qualifying bean of type... found\" when autowiring concrete class",
+    "content": "I am writing a component using Spring Boot and Spring Boot JPA. I have a setup like this:\n\nThe interface:\n\npublic interface Something {\n    // method definitions\n}\n\nThe implementation:\n\n@Component\npublic class SomethingImpl implements Something {\n    // implementation\n}\n\nNow, I have a JUnit test which runs with \nSpringJUnit4ClassRunner\n, and I want to test my \nSomethingImpl\n with this.",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-mvc",
+      "spring-boot"
+    ],
+    "solution": "If you want a special bean you have to use the \n@Qualifier\n annotation:\n\n@Autowired\n@Qualifier(\"SomethingImpl\")\nprivate Something _something;",
+    "chunk_id": "so-28895248-001"
+  },
+  {
+    "id": "so-11184724",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/11184724/two-separate-spring-contexts-for-one-webapp",
+    "title": "Two separate Spring contexts for one webapp",
+    "content": "I want to use \ntwo different Spring web contexts\n, each have own contextConfig, spring servlet and filter, that should be mapped to different urls. I have a \n\nStandard Grails project, mapped to '/'\n\nAnd an existing Spring webapp, that I want to map to \n/extra/\n\nI know that I can deploy both into one Tomcat, but I'm looking for a way of making one app (one \nwar\n, etc), because It can simplify our deployment and development process.\n\nThis applications don't need to share beans or anything, should be completely separate. Both have DispatcherServlet and DispatcherFilter (and both are using Spring Security, but different configuration)\n\nHow I can configure \nweb.xml\n for such webapp?\n\nI've tried to add new filter:",
+    "tags": [
+      "java",
+      "spring",
+      "grails",
+      "spring-security"
+    ],
+    "solution": "As per my comment on the question, if the security filter chain is defined in \nextra-spring-security.xml\n then you need to ensure that that file is loaded by your extra DispatcherServlet in addition to \nextra-spring-web.xml\n either by \n<import>\ning the -security file from the -web one or configuring it as:\n\n<servlet>\n    <servlet-name>extraSpring</servlet-name>\n    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>\n    <load-on-startup>1</load-on-startup>\n    <init-param>\n        <param-name>contextConfigLocation</param-name>\n        <param-value>\n          classpath:extra-spring-web.xml\n          classpath:extra-spring-security.xml\n        </param-value>\n    </init-param>\n</servlet>",
+    "chunk_id": "so-11184724-001"
+  },
+  {
+    "id": "so-53737175",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/53737175/spring-injects-autowired-fields-during-manual-class-instantiation",
+    "title": "Spring injects @Autowired fields during manual class instantiation",
+    "content": "In my project I am surprised to see that Spring (4.3) seems to attempt to autowire dependencies for classes even when they are manually instantiated.\n\nMyClass.java\n (note Lombok annotations):\n\n@NoArgsConstructor\n@AllArgsConstructor\npublic class MyClass {\n    @Autowired\n    private MyClassDependency dependency;\n}\n\nMyClassDependency.java\n uses a factory method and no Spring annotations:\n\npublic class MyClassDependency {\n    public static MyClassDependency create() { return new MyClassDependency(); }\n}\n\nSpring config resulting in ",
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "solution": "The problem is the following:\n\nYou annotated a field with @Autowired - that tells Spring, that there is a dependency that needs to be injected there\n\nYou annotated a method with @Bean - which puts the return value into Spring's context.\n\nWhen Spring processes the return value of the @Bean-annotated object, it starts to proces its annotations - and there is a field with an annotation, that tells Spring to inject a dependency there, even if the field already has a value assigned.\n\nSpring tries to inject the dependency here, but that dependency does not exist in the Spring context, so injection fails.\n\nSo having @Bean, but manually injecting an @Autowired dependency conflicts each other, you may now understand, why - you shall not inject Autowired beans manually! Autowired is an annotation that tells he CI container to do some injection work.",
+    "chunk_id": "so-53737175-001"
+  }
+]

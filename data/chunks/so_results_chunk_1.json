@@ -1,0 +1,396 @@
+[
+  {
+    "id": "so-23714530",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/23714530/org-springframework-beans-factory-beancreationexception-error-creating-bean-wit",
+    "title": "org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'MyController':",
+    "content": "I am doing spring + hibernate application. When I run the application on tomcat server I am getting some exceptions.\n\nINFO : org.springframework.web.servlet.DispatcherServlet - FrameworkServlet 'appServlet': initialization started\nINFO : org.springframework.web.context.support.XmlWebApplicationContext - Refreshing WebApplicationContext for namespace 'appServlet-servlet': startup date [Sat May 17 19:51:03 CEST 2014]; parent: Root WebApplicationContext\nINFO : org.springframework.beans.factory.xml.XmlBeanDefinitionReader - Loading XML bean definitions from ServletContext resource [/WEB-INF/spring/appServlet/servlet-context.xml]\nINFO : org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor - JSR-330 'javax.inject.Inject' annotation found and supported for autowiring\nINFO : org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping - Mapped \"{[/inscription],methods=[],params=[],headers=[],consumes=[],produces=[],custom=[]}\" onto public java.lang.String com.gestEtu.project.controller.CompteController.hello(java.lang.String,java.lang.String,java.lang.String,org.springframework.ui.Model)\nINFO : org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping - Mapped \"{[/],methods=[GET],params=[],headers=[],consumes=[],produces=[],custom=[]}\" onto public java.lang.String com.gestEtu.project.controller.HomeController.home(java.util.Locale,org.springframework.ui.Model)\nINFO : org.springframework.web.servlet.handler.SimpleUrlHandlerMapping - Mapped URL path [/resources/**] onto handler 'org.springframework.web.servlet.resource.ResourceHttpRequestHandler#0'\nERROR: org.springframework.web.servlet.DispatcherServlet - Context initialization failed\norg.springframework.beans.factory.BeanCreationException: Error creating bean with name 'compteController': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire field: private com.gestEtu.project.model.service.CompteServiceImp com.gestEtu.project.controller.CompteController.compteServ; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'compteServiceImp': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire method: public void com.gestEtu.project.model.service.CompteServiceImp.setCompteDAO(com.gestEtu.project.model.dao.CompteDAOHib); nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'compteDAOHib' defined in file [C:\\Users\\zouhair\\workspace\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp1\\wtpwebapps\\TESTER\\WEB-INF\\classes\\com\\gestEtu\\project\\model\\dao\\CompteDAOHib.class]: Instantiation of bean failed; nested exception is org.springframework.beans.BeanInstantiationException: Could not instantiate bean class [com.gestEtu.project.model.dao.CompteDAOHib]: No default constructor found; nested exception is java.lang.NoSuchMethodException: com.gestEtu.project.model.dao.CompteDAOHib.<init>()\n    at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:292)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1185)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:537)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:475)\n    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:304)\n    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:228)\n    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:300)\n    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:195)\n    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:703)",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-mvc",
+      "beancreationexception"
+    ],
+    "solution": "Copied from the stacktrace:\n\nBeanInstantiationException: Could not instantiate bean class [com.gestEtu.project.model.dao.CompteDAOHib]: No default constructor found; nested exception is java.lang.NoSuchMethodException: com.gestEtu.project.model.dao.CompteDAOHib.<init>()\n\nBy default, Spring will try to instantiate beans by calling a default (no-arg) constructor. The problem in your case is that the implementation of the \nCompteDAOHib\n has a constructor with a \nSessionFactory\n argument. By adding the \n@Autowired\n annotation to a constructor, Spring will attempt to find a bean of matching type, \nSessionFactory\n in your case, and provide it as a constructor argument, e.g.\n\n@Autowired\npublic CompteDAOHib(SessionFactory sessionFactory) {\n    // ...\n}",
+    "chunk_id": "so-23714530-001"
+  },
+  {
+    "id": "so-2266850",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/2266850/spring-aop-pointcut-syntax-for-and-or-and-not",
+    "title": "Spring AOP Pointcut syntax for AND, OR and NOT",
+    "content": "I'm having trouble with a pointcut definition in Spring (version 2.5.6). I'm trying to intercept all method calls to a class, except for a given method (someMethod in the example below).\n\n<aop:config>\n    <aop:advisor\n         pointcut=\"execution(* x.y.z.ClassName.*(..)) AND NOT\n                   execution(* x.y.x.ClassName.someMethod(..))\"\n    />\n</aop:config>\n\nHowever, the interceptor is invoked for someMethod as well.\n\nThen I tried this: \n\n<aop:config>\n    <aop:advisor\n         pointcut=\"execution(* x.y.z.ClassName.(* AND NOT someMethod)(..)) )\"\n    />\n</aop:config>\n\nBut this does not compile as it is not valid syntax (I get a BeanCreationException).",
+    "tags": [
+      "spring",
+      "aop",
+      "spring-aop"
+    ],
+    "solution": "i know its probably a bit late at this stage but ive been having the same issue and I resolved it by escaping the ampersand chars so its \n&& !\n instead of 'AND NOT' or '&& !'.\nI'm doing this in the xml file\n\n<aop:config>\n    <aop:pointcut id=\"blah\" expression=\"execution(* com.disney.goofy..*.*(..)) && !@annotation(com.disney.goofy.NonDisneyCharacter)\"/>\n    <aop:advisor advice-ref=\"transAdvice\" pointcut-ref=\"blah\"/>\n</aop:config>\n\nThis applies the advice to all methods executed in com.disney.goofy and that are not annotated with NonDisneyCharacter",
+    "chunk_id": "so-2266850-001"
+  },
+  {
+    "id": "so-10539417",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/10539417/spring-data-jpa-injection-fails-beancreationexception-could-not-autowire-fi",
+    "title": "Spring Data JPA - injection fails - BeanCreationException: Could not autowire field",
+    "content": "i followed the tutorial posted \nhere\n to get a basis application to work with Spring Data JPA. Now, how i understood, using the configuration\n\n<jpa:repositories base-package=\"my.package.to.scan\" />\n\nshould result in that package beeing scanned by Spring Data JPA for interfaces extending \nJpaRepository\n and create a concreate bean of it so it can be used anywhere in my service classes using simple Spring \n@Autowired\n. But it fails, saying it can't find a bean with className (which is the default name the bean gets when created, simply using the de-capitalized ClassName).\n\nHowever, when i configure the bean manualy in my applicationContext like this:\n\n<bean id=\"ClassName\" class=\"my.package.to.scan.ClassName\"/>\n\nSpring is able to find the bean. I then of course get an error because i want to create a bean from an interface, which obviously can't work. BUT the point is that it seems like the Spring Data JPA \"automatic bean creation\" seems to fail somehow.\n\nI attached the relevant code so you can look at it. Btw, i should mention that i'm developing a portlet, so don't wonder why i dont have a spring-config. I'm currently using a applicationConfig only plus an MyPortlet-Portlet.xml for portlet configurations (but that should be not relevent for this problem). I added the import statements just to make sure i'm not using the wrong annotions / classes.\n",
+    "tags": [
+      "java",
+      "spring",
+      "annotations",
+      "spring-data",
+      "spring-data-jpa"
+    ],
+    "solution": "The problem is very probably in some of the configuration you haven't shown. It would also be good if you posted the error you're getting. It might be something different than what you think it is.\n\nOne thing I notice about your config is that you're using \ncontext:annotation-config\n instead of \ncontext:component-scan\n. The latter will auto-detect and create beans based on the \n@Component\n family of annotations. The former doesn't do that.\n\nOther than that, everything you posted looks like it should work, though there are several odd things, which I'll come to in a moment. I copied all your posted code into a sample project and filled in a few details, like a \nmaven pom\n, a \npersistence.xml\n, and the missing pieces of \nthe applicationContext.xml\n. I also added a \"create\" method to the service so it would actually do something. With those in place and a main class to drive it all, it's a runnable example. You can \nbrowse the code on github\n, or you can clone and run it with:\n",
+    "chunk_id": "so-10539417-001"
+  },
+  {
+    "id": "so-8890240",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8890240/how-to-make-mysql-work-on-grails-2-0",
+    "title": "How to make MySQL work on grails 2.0",
+    "content": "Grails 2.0 seems to have some changes to \nDataSource.groovy\n and I don't seem to be able to get mysql running as it was in 1.3.7\n\nI did \ngrails install-dependency mysql:mysql-connector-java:5.1.16\n rather than just dumping the .jar in lib.  I hear this is the way to do it these days.\n\nHere is what I have replaced in my \nDataSource.groovy\n:\n\ndriverClassName = \"org.h2.Driver\"\n...\nurl = \"jdbc:h2:mem:devDb;MVCC=TRUE\"\n\nWith\n\ndriverClassName = \"com.mysql.jdbc.Driver\"\n...",
+    "tags": [
+      "mysql",
+      "grails",
+      "datasource",
+      "grails-orm",
+      "grails-2.0"
+    ],
+    "solution": "install-dependency\n just downloads the jar and puts it in your Ivy cache. But you haven't declared that your application has a dependency on that jar. \nBuildConfig.groovy\n has a commented-out dependency declaration for the MySQL driver. Just uncomment that and update the version if you want and it will add it to your application's classpath. It would also download the jar to your Ivy cache if you hadn't done that with \ninstall-dependency\n.",
+    "chunk_id": "so-8890240-001"
+  },
+  {
+    "id": "so-52416970",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/52416970/jpa-beancreationexception-onetomany-manytoone-mapping-jpa-hibernate",
+    "title": "JPA: BeanCreationException: OneToMany & ManyToOne mapping JPA / Hibernate",
+    "content": "I have two tables with foreign key relations. I've tried searching on how to do it and it always leads to OneToMany & ManyToOne mapping. I have these two tables.\n\nuser_role\n\nuser\n\nI'm trying to display all the users and show their position by getting the value of the position column to the user_role table.\n\nThese are my classes\n\nUser.java\n\n@Entity\n@Table(name=\"user\")\npublic class User {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private long id;\n",
+    "tags": [
+      "hibernate",
+      "jpa",
+      "spring-data-jpa",
+      "one-to-many",
+      "many-to-one"
+    ],
+    "solution": "Can you move the relationship to a related object like this\n\n@ManyToOne()\n@JoinColumn(name=\"role_id\", referencedColumnName = \"role_id\", insertable = false, updatable = false)    \nprivate UserRole userRole;\n\nand same do for userRole\n\n@OneToMany(targetEntity=User.class, mappedBy=\"userRole\",cascade=CascadeType.ALL, fetch = FetchType.LAZY)    \nprivate List<User> user = new ArrayList<>();\n\nUpdate\n\nThe jar file seems to be corrupted. Try removing the content from the .m2\\repository and \nmvn clean install\n\nOR \n\nRight-click your project, select Maven, Update Project, check on Force Update of Snapshots/Releases.",
+    "chunk_id": "so-52416970-001"
+  },
+  {
+    "id": "so-17293763",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/17293763/grails-suddenly-throws-error-could-not-determine-hibernate-dialect-for-database",
+    "title": "Grails suddenly throws error Could not determine Hibernate dialect for database name",
+    "content": "I was using \ngrails\n in version \n2.2.0\n on Ubuntu for some time and everything went good. My application ran fine. I updated my JDK to 1.7.0_25 yesterday and I'm sure that's only change I did. Since then all my apps throws error when run-app is called (stacktrace on the bottom).\n\nCould not determine Hibernate dialect for database name [H2]! # or PostgresSQL if postgres is used\n\nI was fiddling with webxml plugin on one project but I don't think that would mess up the other applications. I use git for version control and even if I go back to stable commits the error still appears.\n\nFunny thing is that if I run the app \nfrom IntelliJ Idea\n, it \nworks like a charm\n. But I really want to use clasic command line tool.\n\nIntelliJ start app with this command:\n\n/usr/lib/jvm/java-7-oracle/bin/java -Dgrails.home=/usr/share/grails/2.2.0 -Dbase.dir=/home/freeman/Dokumenty/cms/plugins/Diagnostics -Dtools.jar=/usr/lib/jvm/java-7-oracle/lib/tools.jar -Dgroovy.starter.conf=/usr/share/grails/2.2.0/conf/groovy-starter.conf -Xmx512M -XX:MaxPermSize=192m -Didea.launcher.port=7533 -Didea.launcher.bin.path=/home/freeman/programy/idea-IU-117.798/bin -Dfile.encoding=UTF-8 -classpath /usr/share/grails/2.2.0/lib/org.codehaus.groovy/groovy-all/jars/groovy-all-2.0.5.jar:/usr/share/grails/2.2.0/dist/grails-bootstrap-2.2.0.jar:/home/freeman/programy/idea-IU-117.798/lib/idea_rt.jar com.intellij.rt.execution.application.AppMain org.codehaus.groovy.grails.cli.support.GrailsStarter --main org.codehaus.groovy.grails.cli.GrailsScriptRunner --conf /usr/share/grails/2.2.0/conf/groovy-starter.conf run-app\n",
+    "tags": [
+      "hibernate",
+      "grails"
+    ],
+    "solution": "This is due to a change in 1.7.0_25 which causes a problem when using spring-loaded. It's fixed in Grails 2.2.3, so upgrading to that will fix this. See \nhttp://jira.grails.org/browse/GRAILS-10183",
+    "chunk_id": "so-17293763-001"
+  },
+  {
+    "id": "so-27779885",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/27779885/autowiring-spring-services-into-junit-tests",
+    "title": "Autowiring Spring services into JUnit tests",
+    "content": "Following is the service.\n\n@Service\npublic class MyService  {\n   public List<Integer> getIds(Filter filter){\n      // Method body\n   }\n}\n\nAnd a configuration class.\n\n@Configuration\npublic static class MyApplicationContext {\n\n    @Bean\n    public Filter filter(ApplicationContext context) {\n        return new Filter();\n    }\n}\n",
+    "tags": [
+      "java",
+      "spring",
+      "junit",
+      "junit4",
+      "spring-junit"
+    ],
+    "solution": "Add the following annotation to \nMyApplicationContext\n for the service to be scanned \n@ComponentScan(\"myservice.package.name\")",
+    "chunk_id": "so-27779885-001"
+  },
+  {
+    "id": "so-36777331",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/36777331/spring-beancreationexception-bean-instantiation-via-factory-method-failed-nest",
+    "title": "Spring BeanCreationException : Bean instantiation via factory method failed nested exception",
+    "content": "I'm getting start with Spring and I'm trying to build an app using Security, Hibernate and Thymleaf.\n\nI have this error that stuck me for days.\n\nHere are the logs :\n\norg.springframework.beans.factory.BeanCreationException: Error creating bean with name 'userController': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire field: public com.nickeed.ServiceInterface.UserServiceInterface com.nickeed.controller.UserController.UserServiceInterface; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'userServiceImpl': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire field: protected com.nickeed.repository.UserRepository com.nickeed.ServiceImpl.UserServiceImpl.userRepository; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'userRepository': Invocation of init method failed; nested exception is java.lang.IllegalArgumentException: Not an managed type: class com.nickeed.model.User\n    at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:334) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1214) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:543) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:482) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:772) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:839) ~[spring-context-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:538) ~[spring-context-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.refresh(EmbeddedWebApplicationContext.java:118) ~[spring-boot-1.3.3.RELEASE.jar:1.3.3.RELEASE]\n    at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:766) [spring-boot-1.3.3.RELEASE.jar:1.3.3.RELEASE]",
+    "tags": [
+      "spring",
+      "hibernate",
+      "spring-mvc",
+      "spring-security",
+      "autowired"
+    ],
+    "solution": "Please make sure you have the correct packages to scan in your entity manager.\n\nentityManagerFactory.setPackagesToScan(\n    env.getProperty(\"entitymanager.packagesToScan\")\n); \n\nare you sure the correct path has been set here. Not sure what entity manger is and are you setting the path to scan",
+    "chunk_id": "so-36777331-001"
+  },
+  {
+    "id": "so-5007516",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/5007516/jaxb-xmlelements-different-types-but-same-name",
+    "title": "JAXB @XmlElements, different types but same name?",
+    "content": "I have an Animal class and an extension of Animal called AnimalExtension. \n\npublic class Animal\n\npublic class AnimalExtension extends Animal\n\nThe only difference between the two classes is that AnimalExtension has another instance variable called animalId. Animal does not have this instance variable. \n\nI also have my own data type that I want to marshal and unamarshal to XML. This data type is called AnimalList. inside AnimalList, there is a list of Animals as an instance variable.\n\n@XmlType(name = \"AnimalList\")\npublic class AnimalList{\n    private List<Animal> animalList;\n    ....\n\nanimalList can contain both Animal and AnimalExtension. However, on the XML I dont want the element to be named as AnimalExtension; I want them all to have element name of Animal. I only want the extra attribute to show up when JAXB knows that the Animal is actually an instance of AnimalExtension. So if I have a list of that looks like\n\nList<Animal> animalList = new LinkedList<Animal>();\nAnimalExtension animalExtension = new AnimalExtension();\nanimalExtension.setAnimalId(1);",
+    "tags": [
+      "java",
+      "jaxb",
+      "jersey",
+      "jax-rs"
+    ],
+    "solution": "To map this use case you could leverage the following XmlAdapters:\n\nAnimalAdapter\n\nSince AnimalExtension is a super set of Animal we will use it to produce/consume XML. Then we will leverage the value of the animalId property to determine if an instance of Animal or AnimalExtension will be returned to AnimalList.\n\nimport javax.xml.bind.annotation.adapters.XmlAdapter;\n\npublic class AnimalAdapter extends XmlAdapter<AnimalExtension, Animal> {\n\n    @Override\n    public Animal unmarshal(AnimalExtension animalExtension) throws Exception {\n        if(0 != animalExtension.getAnimalId()) {\n            return animalExtension;\n        }\n        Animal animal = new Animal();\n        animal.setName(animalExtension.getName());\n        return animal;\n    }\n",
+    "chunk_id": "so-5007516-001"
+  },
+  {
+    "id": "so-32114558",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32114558/nouniquebeandefinitionexception-no-qualifying-bean-of-type-javax-persistence-e",
+    "title": "NoUniqueBeanDefinitionException: No qualifying bean of type [javax.persistence.EntityManagerFactory] is defined: expected single matching bean",
+    "content": "I have 2 separate databases and I am trying to access them in repositories.\nUnfortunately I am receiving the following exception. \n\nThings I have tried\n\nhave tried making \none of the bean as Primary\n.\n\nhave used \nPersistenceContext\n as can be seen in code below.\n\nMy ExceptionTrace\n\nException in thread \"main\" org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'orderController': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire field: private com.crud.repository.mymerkNew.OrderRepository com.crud.controller.OrderController.nextGenorder; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'orderRepository': Injection of persistence dependencies failed; nested exception is org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type [javax.persistence.EntityManagerFactory] is defined: expected single matching bean but found 2: mymerkLimsEntityManagerFactory,nextGenEntityManagerFactory\n    at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:334)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1202)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:537)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:476)",
+    "tags": [
+      "spring",
+      "spring-mvc",
+      "spring-boot",
+      "spring-orm",
+      "beancreationexception"
+    ],
+    "solution": "I think you should be naming your LocalContainerEntityManagerFactoryBean's in both configurations. So it should look like:\n\n@Bean(name = \"nextGenEntityManagerFactory\")\n@Primary\npublic LocalContainerEntityManagerFactoryBean nextGenEntityManagerFactory() {\n\nfor the first one and\n\n@Bean(name = \"gatcLimsEntityManagerFactory\") \npublic LocalContainerEntityManagerFactoryBean gatcLimsEntityManagerFactory() {\n\nfor the second.",
+    "chunk_id": "so-32114558-001"
+  },
+  {
+    "id": "so-58318159",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/58318159/beancreationexception-error-creating-bean-with-name-flywayinitializer",
+    "title": "BeanCreationException: Error creating bean with name 'flywayInitializer'",
+    "content": "I am trying to run my project tests in a docker container. All of the tests work just fine when running locally. Errors started occurring when I tried to move my testing to docker container. \nHere is the error message:\n\njava.lang.IllegalStateException: Failed to load ApplicationContext\n[...]\nCaused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Invocation of init method failed; nested exception is org.flywaydb.core.internal.command.DbMigrate$FlywayMigrateException: \nMigration V1__initial_user.sql failed\n-------------------------------------\nSQL State  : 42601\nError Code : 0\nMessage    : ERROR: syntax error at or near \"GENERATED\"\n  Position: 45\nLocation   : db/migration/V1__initial_user.sql (/Users/villemossip/Desktop/GRP/GRP-SAS/application/build/resources/main/db/migration/V1__initial_user.sql)\nLine       : 36\nStatement  : CREATE TABLE revinfo\n(\n    rev      INTEGER GENERATED BY DEFAULT AS IDENTITY ( START WITH 1 ),\n    revtstmp BIGINT,\n    PRIMARY KEY (rev)\n)",
+    "tags": [
+      "java",
+      "postgresql",
+      "docker",
+      "testing",
+      "flyway"
+    ],
+    "solution": "Thank you \n@M. Deinum\n and \nMark Bramnik\n!\n\nI found out that the issue is with Postgres version. For some reason by default docker image is created with old version 9.6.12, but sql script \nGENERATED BY DEFAULT\n was added to Postgres with version 10. \n\nSolution 1\n (Update the sql script to older version):\n\nCREATE TABLE revinfo\n(\n    rev      INTEGER PRIMARY KEY NOT NULL,\n    revtstmp BIGINT\n);\n\nSolution 2:",
+    "chunk_id": "so-58318159-001"
+  },
+  {
+    "id": "so-24262194",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/24262194/how-to-create-a-path-bean",
+    "title": "How to create a Path bean",
+    "content": "I need my Spring application context to include a bean that is a (Java 7) \nPath\n object, with a fixed (known) path-name. What XML bean definition should I use?\n\nThis kind of bean has some complications:\n\nPath\n is an interface, and \nPath\n objects should be created using the \nPaths.get(String...)\n static factory method.\n\nThe static factory method also has an overloaded variant, \nPaths.get(URI)\n.\n\nAs the object \nis-a\n",
+    "tags": [
+      "java",
+      "spring",
+      "factory"
+    ],
+    "solution": "After some experimenting with \npingw33n's answer\n, I found this worked:\n\n <bean id=\"myPath\" class=\"java.nio.file.Paths\" factory-method=\"get\">\n    <constructor-arg value=\"/my/path\" />\n    <constructor-arg><array /></constructor-arg>\n </bean>\n\nNote:\n\nGive the name of the \nfactory\n class, rather than the \nobject\n class, as the value of the \nclass\n attribute.\n\nGive an extra empty ",
+    "chunk_id": "so-24262194-001"
+  },
+  {
+    "id": "so-28902140",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28902140/how-to-use-springs-jdbctemplate-to-connect-to-a-simple-mysql-database",
+    "title": "How to use Spring's JdbcTemplate to connect to a simple MySql database?",
+    "content": "I am trying to use Spring's JdbcTemplate Class to connect to a simple MySql database based on \nthis\n tutorial. In fact, I used their project setup:\n\npom.xml \n\n    <project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>test</groupId>\n    <artifactId>jdbc-test</artifactId>\n    <version>0.0.1-SNAPSHOT</version>\n\n    <parent>\n        <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-parent</artifactId>\n        <version>1.2.2.RELEASE</version>\n    </parent>\n\n    <dependencies>",
+    "tags": [
+      "java",
+      "mysql",
+      "maven",
+      "spring-boot",
+      "spring-jdbc"
+    ],
+    "solution": "Add the dependency below:\n\n<dependency>\n    <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-jdbc</artifactId>\n</dependency>\n\nWhich will autoconfigure the Datasource",
+    "chunk_id": "so-28902140-001"
+  },
+  {
+    "id": "so-8902823",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8902823/can-i-ignore-beancreationexception-and-inject-null-instead",
+    "title": "Can I ignore BeanCreationException and inject null instead?",
+    "content": "We have a situation where our Spring wires up some beans that include ActiveMQ classes built with Java 6.  Our application runs on customer's servers, so we can't guarantee that they have Java 6 or later installed.  If they happen to have Java 5, the application can't start because of \nBeanCreationException\ns with the classes that depend on ActiveMQ (root cause being a \nUnsupportedClassVersionError\n).\n\nSo my question is, is there any way to ignore a \nBeanCreationException\n and still start the application?  I want to be able to display an error message saying that they need to install Java 6 or later, but since the application can't even start, I never have a chance to do this.\n\nMy hunch is that there is no way to do this, because Spring needs to be able to guarantee that my application is built properly after initialization, but I thought I would ask anyway.  Any other suggestions for how to accomplish my end goal would also be helpful and appreciated.\n\nWe are using Spring 3.0.6\n\nThanks!",
+    "tags": [
+      "java",
+      "spring",
+      "dependency-injection",
+      "java-6",
+      "java-5"
+    ],
+    "solution": "First off, any throwables that are a subclass of \njava.lang.Error\n are generally considered to be non-recoverable. So while it's possible to catch them, \nit's strongly discouraged\n:\n\nAn \nError\n is a subclass of \nThrowable\n that indicates serious problems that a reasonable application should not try to catch. Most such errors are abnormal conditions.\n\nHowever, if all you're going to do is display an error message, then you should be able to get away with it.\n\nSO to get back to your question, I suggest \ncreating an implementation\n of Spring's \nFactoryBean\n interface, which would try to load the ActiveMQ classes. If it works, then it can return the appropriate object from \nFactoryBean.getObject",
+    "chunk_id": "so-8902823-001"
+  },
+  {
+    "id": "so-9931491",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/9931491/spring-resource-handling",
+    "title": "Spring @Resource Handling",
+    "content": "I'm having trouble with a field annotated as \n@Resource\n in a Spring bean. What I have:\n\nA field, with setter method, annotated \n@Resource\n\n@Resource\nprivate URL someUrl;\n\npublic void setSomeUrl(URL someUrl) {\n    this.someUrl = someUrl;\n}\n\nAn \n<env-entry>\n tag in my deployment descriptor (web.xml)\n\n<env-entry>\n    <env-entry-name>someUrl</env-entry-name>",
+    "tags": [
+      "java",
+      "spring",
+      "tomcat",
+      "weblogic",
+      "jndi"
+    ],
+    "solution": "If you are using Spring Stereotype annotations, (\n@Service\n, \n@Component\n...), then you are probably including in your spring configuration the \n<context:component-scan />\n element to pick them up.  It is fine to do this, but it will automatically register a \nCommonAnnotationBeanPostProcessor\n with the application context, \nas stated just above the second note in this link\n.\n\nThe issue with including the \nCommonAnnotationBeanPostProcessor\n is that Spring handles the \n@Resource\n annotation and will attempt to inject beans from its application context.  You can register your own \nCommonAnnotationBeanPostProcessor\n bean and tell Spring to allow direct JNDI access to these \n@Resource",
+    "chunk_id": "so-9931491-001"
+  },
+  {
+    "id": "so-33593111",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/33593111/intellij-spring-boot-how-to-create-an-executable-jar",
+    "title": "IntelliJ Spring Boot: How to create an executable jar",
+    "content": "I'm trying to create an executable jar from IntelliJ.\n\nFirst I got the Java Security Exception and I changed \nsqljdbc4-4.0\n to \nunsigned\n. First problem \nsolved\n.\n\nThen I got Manifest not found. Added \nMETA-INF\n dir to output. Second problem \nsolved\n.\n\nNext I got the \nBeanCreationException\n (\nunsolved",
+    "tags": [
+      "intellij-idea",
+      "gradle",
+      "jar",
+      "spring-boot",
+      "executable-jar"
+    ],
+    "solution": "You should use \nspring-boot-maven-plugin\n or \nspring-boot-gradle-plugin\n, depending on your preferred build system.\n\nEDIT:\n\nJust run \n./gradlew build\n\nI suggest to dive into this \ngetting started guide\n. It clarifies a lot of stuff for beginners.",
+    "chunk_id": "so-33593111-001"
+  },
+  {
+    "id": "so-36976267",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/36976267/beancreationexception-invocation-of-init-method-failed",
+    "title": "BeanCreationException : Invocation of init method failed",
+    "content": "I am trying to implement LDAP configuration for my Spring Project but LDAP Repository is not getting initialized. \n\nError Trace is - \n\nxx:xx:xx.116 [localhost-startStop-1] WARN  o.s.w.c.s.XmlWebApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'userRepo': Invocation of init method failed; nested exception is java.lang.AbstractMethodError: org.springframework.ldap.repository.support.LdapRepositoryFactory$LdapQueryLookupStrategy.resolveQuery(Ljava/lang/reflect/Method;Lorg/springframework/data/repository/core/RepositoryMetadata;Lorg/springframework/data/projection/ProjectionFactory;Lorg/springframework/data/repository/core/NamedQueries;)Lorg/springframework/data/repository/query/RepositoryQuery;\nxx:xx:xx.124 [localhost-startStop-1] ERROR o.s.web.context.ContextLoader - Context initialization failed\norg.springframework.beans.factory.BeanCreationException: Error creating bean with name 'userRepo': Invocation of init method failed; nested exception is java.lang.AbstractMethodError: org.springframework.ldap.repository.support.LdapRepositoryFactory$LdapQueryLookupStrategy.resolveQuery(Ljava/lang/reflect/Method;Lorg/springframework/data/repository/core/RepositoryMetadata;Lorg/springframework/data/projection/ProjectionFactory;Lorg/springframework/data/repository/core/NamedQueries;)Lorg/springframework/data/repository/query/RepositoryQuery;\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1578) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:545) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:482) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:753) ~[spring-beans-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:839) ~[spring-context-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:538) ~[spring-context-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.web.context.ContextLoader.configureAndRefreshWebApplicationContext(ContextLoader.java:444) ~[spring-web-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.web.context.ContextLoader.initWebApplicationContext(ContextLoader.java:326) ~[spring-web-4.2.5.RELEASE.jar:4.2.5.RELEASE]\n    at org.springframework.web.context.ContextLoaderListener.contextInitialized(ContextLoaderListener.java:107) [spring-web-4.2.5.RELEASE.jar:4.2.5.RELEASE]",
+    "tags": [
+      "java",
+      "spring",
+      "ldap",
+      "repository",
+      "javabeans"
+    ],
+    "solution": "From the JavaDoc for \nAbstractMethodError\n:\n\nThrown when an application tries to call an abstract method. Normally, this error is caught by the compiler; this error can only occur at run time if the definition of some class has incompatibly changed since the currently executing method was last compiled.\n\nThis means the deployed version of Spring is different from the one you used to compile the code.\n\nMake sure the deployed libraries are the same version as the ones in your IDE",
+    "chunk_id": "so-36976267-001"
+  },
+  {
+    "id": "so-26353667",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/26353667/how-to-integrate-spring-data-neo4j-and-mongodb-in-grails-2-4-2-project",
+    "title": "How to integrate Spring Data Neo4j and Mongodb in Grails 2.4.2 Project",
+    "content": "I am creating a Grails Project , I need to integrate Neo4j and Mongodb , For neo4j I use SDN(Spring Data Neo4j) and for MongoDb we use Grails Plugin \n\nThis is our Dependencies and Plugins \n dependencies {\n            // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes e.g.\n            // runtime 'mysql:mysql-connector-java:5.1.29'\n            // runtime 'org.postgresql:postgresql:9.3-1101-jdbc41'\n        //  compile 'org.grails:grails-datastore-gorm:3.1.2.RELEASE'\n        //  compile 'org.grails:grails-datastore-core:3.1.2.RELEASE'\n        //  test 'org.grails:grails-datastore-simple:3.1.2.RELEASE'\n            //compile 'org.grails:grails-datastore-gorm:3.1.0.RELEASE'\n            //compile 'org.grails:grails-datastore-core:3.1.0.RELEASE'\n        //  test 'org.grails:grails-datastore-simple:3.1.0.RELEASE'\n          //  test \"org.grails:grails-datastore-test-support:1.0-grails-2.4\"\n            compile 'org.springframework.data:spring-data-neo4j-rest:3.2.0.RELEASE'\n            compile 'org.springframework.data:spring-data-commons:1.9.0.RELEASE'\n            //compile 'javax.validation:validation-api:1.1.0.Final'\n\n        }\n",
+    "tags": [
+      "mongodb",
+      "grails",
+      "spring-data-neo4j"
+    ],
+    "solution": "Problem Solved .There is missing of dependency \nChange your BuildConfig.grrovy with this `\n\ngrails.servlet.version = \"3.0\" // Change depending on target container compliance (2.5 or 3.0)\ngrails.project.class.dir = \"target/classes\"\ngrails.project.test.class.dir = \"target/test-classes\"\ngrails.project.test.reports.dir = \"target/test-reports\"\ngrails.project.work.dir = \"target/work\"\ngrails.project.target.level = 1.6\ngrails.project.source.level = 1.6\n//grails.project.war.file = \"target/${appName}-${appVersion}.war\"\n\ngrails.project.fork = [\n    // configure settings for compilation JVM, note that if you alter the Groovy version forked compilation is required\n    //  compile: [maxMemory: 256, minMemory: 64, debug: false, maxPerm: 256, daemon:true],\n\n    // configure settings for the test-app JVM, uses the daemon by default\n    test: [maxMemory: 768, minMemory: 64, debug: false, maxPerm: 256, daemon:true],\n    // configure settings for the run-app JVM\n    run: [maxMemory: 768, minMemory: 64, debug: false, maxPerm: 256, forkReserve:false],",
+    "chunk_id": "so-26353667-001"
+  },
+  {
+    "id": "so-23854730",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/23854730/error-in-grails-2-4-0-with-hibernate3-6-10-15-plugin",
+    "title": "Error in grails 2.4.0 with hibernate:3.6.10.15 plugin",
+    "content": "I created a new app using grails 2.4.0, then when changing the hibernate plugin to :hibernate:3.6.10.15, I got the following error:\n\n    Error |\n2014-05-25 12:37:52,167 [localhost-startStop-1] ERROR context.Grail\nactionManagerPostProcessor': Initialization of bean failed; nested\ne 'transactionManager': Cannot resolve reference to bean 'sessionFa\n.factory.BeanCreationException: Error creating bean with name 'sess\nn: could not instantiate RegionFactory [org.hibernate.cache.ehcache\nMessage: Error creating bean with name 'transactionManagerPostProce\neationException: Error creating bean with name 'transactionManager'\nnested exception is org.springframework.beans.factory.BeanCreationE\n exception is org.hibernate.HibernateException: could not instantia\n    Line | Method\n->>  262 | run       in java.util.concurrent.FutureTask\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n|   1145 | runWorker in java.util.concurrent.ThreadPoolExecutor\n|    615 | run . . . in java.util.concurrent.ThreadPoolExecutor$Wor\n^    744 | run       in java.lang.Thread\nCaused by BeanCreationException: Error creating bean with name 'tra\nessionFactory'; nested exception is org.springframework.beans.facto",
+    "tags": [
+      "spring",
+      "security",
+      "grails"
+    ],
+    "solution": "Your conf/DataSource.groovy hibernate section should look like this:\n\nhibernate {\n  cache.use_second_level_cache = true\n  cache.use_query_cache = false\n  cache.region.factory_class = 'net.sf.ehcache.hibernate.EhCacheRegionFactory' // Hibernate 3\n//cache.region.factory_class = 'org.hibernate.cache.ehcache.EhCacheRegionFactory' // Hibernate 4\n  singleSession = true // configure OSIV singleSession mode\n}\n\nIf you have enabled hibernate 3 in BuildConfig.groovy you should comment out cache of hibernate 4 in DataSource.groovy and enable cache of hibernate 3.",
+    "chunk_id": "so-23854730-001"
+  },
+  {
+    "id": "so-2153298",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/2153298/how-to-autowire-factorybean",
+    "title": "How to autowire factorybean",
+    "content": "I have a ServiceListFactoryBean which creates a list of service implementations:\n\n<bean id=\"services\"\n      class=\"org.springframework.beans...ServiceListFactoryBean\"\n      p:serviceType=\"ServiceInterface\"/>\n\nI can access the services using the applicationContext without a problem:\n\n    final List services = ctx.getBean(\"services\", List.class));\n\nI can also use trad constructor-arg injection successfully:\n\n<bean id=\"aClass\" class=\"AClass\">\n    <constructor-arg ref=\"services\"/>\n</bean>\n\nBut if I try to autowire the dependency\n\n@Autowired @Qualifier(\"services\") private List services;\n",
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "solution": "It turns out that the answer is ...\n\n@Resource(name=\"services\") private List services;",
+    "chunk_id": "so-2153298-001"
+  },
+  {
+    "id": "so-76119446",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/76119446/strange-issues-with-javax-ws-rs-core-uribuilder",
+    "title": "Strange Issues with javax.ws.rs.core.UriBuilder",
+    "content": "Today I updated a command line application to Spring Boot 3.0.6\n\nI receive a \nBeanCreationException\n exception when starting the application. Reason is\n\nCaused by: java.lang.ClassNotFoundException: javax.ws.rs.core.UriBuilder\n\nwhich is needed internaly by \ncom.atlassian.jira.rest.client.api.JiraRestClient\n. In IDEA, when I search for \njavax.ws.rs.core.UriBuilder\n I do not find any class.\n\nSo I included\n\nimplementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'\n\nin my Gradle build. Now I receive a\n",
+    "tags": [
+      "java",
+      "spring-boot",
+      "kotlin",
+      "gradle",
+      "jira-rest-java-api"
+    ],
+    "solution": "The reason is I think according to the Spring-Boot Release Notes (\nhttps://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes\n), it is clearly mentioned it has been migrated from Java EE to Jakarta EE APIs (in this case javax.ws.rs and your Spring-Boot version is Spring Boot 3.0.6).\n\nSpring Boot 3.0 has migrated from Java EE to Jakarta EE APIs for all dependencies. Wherever possible, Jakarta EE 10 compatible dependencies have been chosen, including:\n\nIt has further included the compatible version to use is \nJakarta WS RS 3.1",
+    "chunk_id": "so-76119446-001"
+  },
+  {
+    "id": "so-34738498",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34738498/spring-autowired-not-working-beancreationexception",
+    "title": "Spring @Autowired not working - BeanCreationException",
+    "content": "When I try to deploy file on server error occurs. I'm confused, because this code  was working.\n\nException\n\n    Failed to enable lec2ear-1.0.ear.\n\nUnexpected HTTP response: 500\n\nRequest\n{\n    \"address\" => [(\"deployment\" => \"lecture_7\")],\n    \"operation\" => \"deploy\"\n}\n\nResponse\n\nInternal Server Error\n{\n    \"outcome\" => \"failed\",\n    \"failure-description\" => {\"JBAS014671: Failed services\" => {\"jboss.undertow.deployment.default-server.default-host./mart-parent\" => \"org.jboss.msc.service.StartException in service jboss.undertow.deployment.default-server.default-host./mart-parent: Failed to start service",
+    "tags": [
+      "java",
+      "spring",
+      "autowired"
+    ],
+    "solution": "Here last cause in your exception message:\n\nError creating bean with name 'jpaMappingContext': Invocation of init method failed; nested exception is javax.persistence.PersistenceException\n\nSpring could not invoke the init method of your \njpaMappingContext\n because a persistence exception occured - Something went wrong in the database.\n\nSo, Spring autowiring is actually working, but it cannot autowire your dependency because of a database problem that occurs when initializing one of the spring beans.\n\nSo something in the database or database settings changed since this code last worked. Analyze the full stack trace to find out the root cause of this issue - Which is a database problem.",
+    "chunk_id": "so-34738498-001"
+  },
+  {
+    "id": "so-20453898",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/20453898/how-to-connect-postgres-database-with-grails-2-3-4",
+    "title": "How to connect postgres database with Grails 2.3.4",
+    "content": "I'm new to Grails.  I'm trying to connect postgresql 9.0 database server with grails 2.3.4. I have added postgresql-9.0-801.jdbc3.jar file into the lib folder of grails application.When i'm running the application on Intellij editor then getting following error.\nWhere i'm doing wrong?\n\n|Running Grails application Error | 2013-12-08 18:44:55,837 [localhost-startStop-1] ERROR pool.ConnectionPool - Unable to create initial connections of pool. Message: Driver:org.postgresql.Driver@7c3b99 returned null for URL:jdbc:postgres://localhost/clientpro Line | Method ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Error | 2013-12-08 18:44:55,877 [localhost-startStop-1] ERROR pool.ConnectionPool - Unable to create initial connections of pool. Message: Driver:org.postgresql.Driver@1ab5d6d returned null for URL:jdbc:postgres://localhost/clientpro Line | Method ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Error | 2013-12-08 18:44:56,160 [localhost-startStop-1] ERROR pool.ConnectionPool - Unable to create initial connections of pool. Message: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro Line | Method ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Error | 2013-12-08 18:44:56,174 [localhost-startStop-1] ERROR context.GrailsContextLoader - Error initializing the application: Error creating bean with name 'transactionManagerPostProcessor': Initialization of bean failed; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'transactionManager': Cannot resolve reference to bean 'sessionFactory' while setting bean property 'sessionFactory'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sessionFactory': Cannot resolve reference to bean 'lobHandlerDetector' while setting bean property 'lobHandler'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'lobHandlerDetector': Invocation of init method failed; nested exception is org.springframework.jdbc.support.MetaDataAccessException: Error while extracting DatabaseMetaData; nested exception is java.sql.SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro Message: Error creating bean with name 'transactionManagerPostProcessor': Initialization of bean failed; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'transactionManager': Cannot resolve reference to bean 'sessionFactory' while setting bean property 'sessionFactory'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sessionFactory': Cannot resolve reference to bean 'lobHandlerDetector' while setting bean property 'lobHandler'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'lobHandlerDetector': Invocation of init method failed; nested exception is org.springframework.jdbc.support.MetaDataAccessException: Error while extracting DatabaseMetaData; nested exception is java.sql.SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro Line | Method ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Caused by BeanCreationException: Error creating bean with name 'transactionManager': Cannot resolve reference to bean 'sessionFactory' while setting bean property 'sessionFactory'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sessionFactory': Cannot resolve reference to bean 'lobHandlerDetector' while setting bean property 'lobHandler'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'lobHandlerDetector': Invocation of init method failed; nested exception is org.springframework.jdbc.support.MetaDataAccessException: Error while extracting DatabaseMetaData; nested exception is java.sql.SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Caused by BeanCreationException: Error creating bean with name 'sessionFactory': Cannot resolve reference to bean 'lobHandlerDetector' while setting bean property 'lobHandler'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'lobHandlerDetector': Invocation of init method failed; nested exception is org.springframework.jdbc.support.MetaDataAccessException: Error while extracting DatabaseMetaData; nested exception is java.sql.SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Caused by BeanCreationException: Error creating bean with name 'lobHandlerDetector': Invocation of init method failed; nested exception is org.springframework.jdbc.support.MetaDataAccessException: Error while extracting DatabaseMetaData; nested exception is java.sql.SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Caused by MetaDataAccessException: Error while extracting DatabaseMetaData; nested exception is java.sql.SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Caused by SQLException: Driver:org.postgresql.Driver@6bf551 returned null for URL:jdbc:postgres://localhost/clientpro ->> 303 | innerRun in java.util.concurrent.FutureTask$Sync\n| 138 | run in java.util.concurrent.FutureTask | 895 | runTask in java.util.concurrent.ThreadPoolExecutor$Worker | 918 | run in '' ^ 662 | run . . in java.lang.Thread Error | Forked Grails VM exited with error Process finished with exit code 1\n\nDataSource file :-\n\ndataSource {\n   pooled = true\n   driverClassName = \"org.postgresql.Driver\"\n   dialect = org.hibernate.dialect.PostgreSQLDialect",
+    "tags": [
+      "postgresql",
+      "grails"
+    ],
+    "solution": "Try with a different prefix:\n\nurl = \"jdbc:postgresql://localhost/clientpro\"",
+    "chunk_id": "so-20453898-001"
+  },
+  {
+    "id": "so-8632743",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8632743/spring-hibernate-localsessionfactorybean-nosuchmethoderror-org-hibernate-c",
+    "title": "Spring + Hibernate: LocalSessionFactoryBean - NoSuchMethodError: org.hibernate.cfg.annotations.reflection.XMLContext",
+    "content": "I am trying integrate \nHibernate 4.0.0.FINAL\n with \nSpring 3.1.0.RELEASE\n\nusing \n@Configuration\n.\n\nAfterwards, this problem occurs:\n\nBeanCreationException: Error creating bean with name 'alertsSessionFactoryBean'\nNoSuchMethodError: org.hibernate.cfg.annotations.reflection.XMLContext$Default.getDelimitedIdentifier()Ljava/lang/Boolean;\n\nThis is my \nPersistenceHibernateConfig\n file\n\n@Configuration\n@EnableTransactionManagement",
+    "tags": [
+      "java",
+      "hibernate",
+      "spring",
+      "configuration",
+      "persistence"
+    ],
+    "solution": "OK This sounds a lot like you're having issues providing compatible versions of all of the required dependencies. Here are a few thoughts on what could be wrong:\n\nIt doesn't sound like you're using Maven or similar to manage your dependencies. Using an automatic tool to manage your dependencies is strongly recommended since it's very hard/error prone to provide all of the required dependencies manually. That said you should be able to download the release in a zip file containing all the required jars from \nhere\n. Is this what you did?\n\nHibernate core depends on hibernate-commons-annotations.jar. All the annotations which were in hibernate-annotations have been in the core jar for a while now. So you need hibernate-commons-annotations.jar not hibernate-annotations.jar",
+    "chunk_id": "so-8632743-001"
+  },
+  {
+    "id": "so-4802293",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/4802293/spring-beancreationexception-confusion-about-mapping",
+    "title": "spring BeanCreationException confusion about mapping",
+    "content": "trying to integrate hibernate and spring ,I ran into this error\n\nSEVERE: Context initialization failed    \norg.springframework.beans.factory.BeanCreationException\n: Error creating bean with name \n  '\norg.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping\n': Initialization of bean failed; nested exception is \njava.lang.IllegalStateException\n: Cannot map handler '\norg.me.spring.hib.school.web.SchoolController#0\n' to URL path [\n/allschools\n]: There is already handler of type [class \norg.me.spring.hib.school.web.SchoolController\n] mapped.\n\nMy Controller looks like\n\npackage org.me.spring.hib.school.web;",
+    "tags": [
+      "java",
+      "spring-mvc",
+      "url-mapping"
+    ],
+    "solution": "This is happening because you have both\n\n<context:component-scan base-package=\"org.me.spring.hib.school.web\" />\n\nand \n\n<bean  class=\"org.me.spring.hib.school.web.SchoolController\" >\n\nThe first line will auto-discover and register a \nSchoolController\n for you. By explicitly declaring another one, you get a duplicate, and the url-mapping will clash.\n\nYou need to either remove the \n<context:component-scan>\n, or remove the explicit  bean definitions for the controller and the DAO. If you do the latter, then you'll need to use autowiring to inject their dependencies.",
+    "chunk_id": "so-4802293-001"
+  },
+  {
+    "id": "so-1497619",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/1497619/testng-and-spring-3",
+    "title": "TestNG and Spring 3",
+    "content": "What is the best practice way to do unit testing with Spring? I assume the combination TestNG & jmockit with Spring 3 isn't bad, so that's what I'm doing right now, but if I'm off course selecting the tools for my fresh Spring project, please tell me right away. :-)\n\nAnyways, I've created an entity that I want to test, but I'm not sure how to actually run the TestNG from the Spring context. I've created a simple test class\n\npackage com.mydomain.data.entities.test;\n\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.context.ApplicationContext;\nimport org.springframework.test.context.ContextConfiguration;\nimport org.springframework.test.context.testng.AbstractTestNGSpringContextTests;\nimport org.testng.Assert;\nimport org.testng.annotations.*;\n\n@ContextConfiguration(locations={\"classpath:applicationContext.xml\"}) \npublic class SimpleTest extends AbstractTestNGSpringContextTests {\n\n    @Autowired\n    private ApplicationContext applicationContext;\n\n    @BeforeClass",
+    "tags": [
+      "java",
+      "spring",
+      "unit-testing",
+      "testng",
+      "beancreationexception"
+    ],
+    "solution": "Now the problem doesn't seem to be related to any of Spring or TestNG. The key part is:\n\n java.lang.IncompatibleClassChangeError: class org.hibernate.cfg.ExtendedMappings has interface org.hibernate.cfg.Mappings as super class\n\nAre you sure your CLASSPATH is OK? I.e. you have compatible version of Hibernate modules and no repetitions there?\n\nWhat if you create a simple TestNG test that does the following:\n\nClass.forName(\"org.hibernate.cfg.ExtendedMappings\");\n\n?",
+    "chunk_id": "so-1497619-001"
+  }
+]

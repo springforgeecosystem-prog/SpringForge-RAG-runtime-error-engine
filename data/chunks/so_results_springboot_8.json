@@ -1,0 +1,291 @@
+[
+  {
+    "id": "so-37841373",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/37841373/java-lang-illegalargumentexception-no-converter-found-for-return-value-of-type",
+    "title": "java.lang.IllegalArgumentException: No converter found for return value of type",
+    "content": "With this code\n\n@RequestMapping(value = \"/bar/foo\", method = RequestMethod.GET)\n    public ResponseEntity<foo> foo() {\n\n        Foo model;\n        ...\n        return ResponseEntity.ok(model);\n    }\n}\n\nI get the following exception\n\njava.lang.IllegalArgumentException: No converter found for return value of type\n\nMy guess is that the object cannot be converted to JSON because Jackson is missing. I don't understand why because I thought that Jackson was built in with spring boot.\n\nThen I have tried to add Jackson to the pom.xml but I still have the same error\n\n<dependency>",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "jackson"
+    ],
+    "solution": "The problem was that one of the nested objects in \nFoo\n didn't have any \ngetter/setter",
+    "chunk_id": "so-37841373-001"
+  },
+  {
+    "id": "so-37903105",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/37903105/how-to-configure-spring-boot-to-use-file-based-h2-database",
+    "title": "How to configure spring-boot to use file based H2 database",
+    "content": "I have successfully created a spring boot application that uses the H2 embedded database in-memory. I would now like to change this to a file based version that will persist. \n\nI have tried just changing the \nspring.datasource.*\n properties in my \napplication.properties\n file and they look something like this:\n\nspring.datasource.url=jdbc:h2:file:~/test;DB_CLOSE_ON_EXIT=FALSE\nspring.datasource.username=test\nspring.datasource.password=test\nspring.datasource.driverClassName=org.h2.Driver`  \n\nIt seems like spring boot just ignores these settings because it just starts as follows:\n\no.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'\n\nMy \npom.xml\n contains the following dependencies that may be relevant to this post:",
+    "tags": [
+      "java",
+      "spring-boot",
+      "h2"
+    ],
+    "solution": "Refer to \nhttp://www.h2database.com/html/cheatSheet.html\n\nI guess it might be problem with the jdbc.url, change it like this:\n\n# from:\nspring.datasource.url=jdbc:h2:file:~/test;DB_CLOSE_ON_EXIT=FALSE\n\n# to:\nspring.datasource.url=jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE",
+    "chunk_id": "so-37903105-001"
+  },
+  {
+    "id": "so-38133808",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/38133808/spring-multiple-profiles-active",
+    "title": "Spring - Multiple Profiles active",
+    "content": "I basically have a bean in Spring that I wanted to activate only when 2 profiles are active. Basically, it would be like:\n\n@Profile({\"Tomcat\", \"Linux\"})\npublic class AppConfigMongodbLinux{...}\n\n@Profile({\"Tomcat\", \"WindowsLocal\"})\npublic class AppConfigMongodbWindowsLocal{...}\n\nSo I'd like that when I use \n-Dspring.profiles.active=Tomcat,WindowsLocal\n, it would try to use only the \nAppConfigMongodbWindowsLocal\n, but it still tries to register the \nAppConfigMongodbLinux\n.\n\nCaused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'appConfigMongodbLinux': Injection of autowired dependencies failed\n\nIs it possible to make the bean be registered only when both profiles are active or am I using it incorrectly?\n",
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "solution": "Unfortunately, \n@Profile\n activates if \nany\n listed profile is active. There are a couple of ways around this.\n\nApply the common \n@Profile(\"Tomcat\")\n annotation to a top-level configuration class, and then apply \n@Profile(\"Windows\")\n to a nested configuration class (or \n@Bean\n method).\n\nIf Spring Boot is acceptable as a dependency, use \n@AllNestedConditions\n to create an annotation that's the AND instead of the OR.\n\nIt looks like what you're trying to do would be clean to write if you were using Spring Boot autoconfiguration classes; if it's practical to introduce autoconfiguration at this stage of your application's lifecycle, I recommend considering it.",
+    "chunk_id": "so-38133808-001"
+  },
+  {
+    "id": "so-53999226",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/53999226/javax-validation-on-nested-objects-not-working",
+    "title": "Javax validation on nested objects - not working",
+    "content": "In my Spring Boot project I have two DTO's which I'm trying to validate, LocationDto and BuildingDto. The LocationDto has a nested object of type BuildingDto.\n\nThese are my DTO's:\n\nLocationDto\n\npublic class LocationDto {\n\n  @NotNull(groups = { Existing.class })\n  @Null(groups = { New.class })\n  @Getter\n  @Setter\n  private Integer id;\n\n  @NotNull(groups = { New.class, Existing.class })\n  @Getter\n  @Setter\n  private String name;\n\n  @NotNull(groups = { New.class, Existing.class, LocationGroup.class })",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "bean-validation"
+    ],
+    "solution": "Use \n@ConvertGroup\n from \nBean Validation 1.1 (JSR-349)\n.\n\nIntroduce a new validation group say \nPk.class\n. Add it to \ngroups\n of \nBuildingDto\n:\n\npublic class BuildingDto {\n\n    @NotNull(groups = {Pk.class, Existing.class, LocationGroup.class})\n    // Other constraints\n    private Integer id;\n",
+    "chunk_id": "so-53999226-001"
+  },
+  {
+    "id": "so-28307237",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28307237/spring-could-not-resolve-placeholder",
+    "title": "Spring Could not Resolve placeholder",
+    "content": "When I try to launch a program I get the following error: \njava.lang.IllegalArgumentException: Could not resolve placeholder 'appclient' in string value [${appclient}]\n. The error is thrown when the following code is executed:\n\npackage ca.virology.lib2.common.config.spring.properties;\nimport ca.virology.lib2.config.spring.PropertiesConfig;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.context.annotation.Import;\nimport org.springframework.context.annotation.PropertySource;\n\n@Configuration\n@Import({PropertiesConfig.class})\n@PropertySource(\"${appclient}\")\npublic class AppClientProperties {\nprivate static final Logger log = LoggerFactory.getLogger(AppClientProperties.class);\n{\n    //this initializer block will execute when an instance of this class is created by Spring",
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "solution": "You are not reading the properties file correctly. The propertySource should pass the parameter as: \nfile:appclient.properties\n or \nclasspath:appclient.properties\n. Change the annotation to:\n\n@PropertySource(value={\"classpath:appclient.properties\"})\n\nHowever I don't know what your \nPropertiesConfig\n file contains, as you're importing that also. Ideally the \n@PropertySource\n annotation should have been kept there.",
+    "chunk_id": "so-28307237-001"
+  },
+  {
+    "id": "so-8884818",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8884818/eclipse-warning-xxxxxxxxxxx-jar-will-not-be-exported-or-published-runtime-clas",
+    "title": "Eclipse warning: XXXXXXXXXXX.jar will not be exported or published. Runtime ClassNotFoundExceptions may result",
+    "content": "I keep getting the following error after I put the required files in my build path on Eclipse. I am working on a Spring MVC Hello World Application and using Eclipse Helios for Java EE developers:\n\nJan 16, 2012 1:25:42 PM org.apache.catalina.core.StandardContext loadOnStartup\nSEVERE: Servlet /SpringMVCTutorial threw load() exception\njava.lang.ClassNotFoundException: org.springframework.web.servlet.DispatcherServlet\n    at org.apache.catalina.loader.WebappClassLoader.loadClass(WebappClassLoader.java:1676)\n    at org.apache.catalina.loader.WebappClassLoader.loadClass(WebappClassLoader.java:1521)\n    at org.apache.catalina.core.DefaultInstanceManager.loadClass(DefaultInstanceManager.java:415)\n    at org.apache.catalina.core.DefaultInstanceManager.loadClassMaybePrivileged(DefaultInstanceManager.java:397)\n    at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:118)\n    at org.apache.catalina.core.StandardWrapper.loadServlet(StandardWrapper.java:1062)\n    at org.apache.catalina.core.StandardWrapper.load(StandardWrapper.java:1010)\n    at org.apache.catalina.core.StandardContext.loadOnStartup(StandardContext.java:4957)\n    at org.apache.catalina.core.StandardContext$3.call(StandardContext.java:5284)\n    at org.apache.catalina.core.StandardContext$3.call(StandardContext.java:5279)\n    at java.util.concurrent.FutureTask$Sync.innerRun(Unknown Source)\n    at java.util.concurrent.FutureTask.run(Unknown Source)\n    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(Unknown Source)\n    at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)\n    at java.lang.Thread.run(Unknown Source)",
+    "tags": [
+      "spring-mvc",
+      "eclipse-3.6"
+    ],
+    "solution": "In order to get it to work right, I have to \"drop and drag\" the files that I want in my classpath/dependencies into my the \nWEB-INF/lib\n folder. It works this way.  \n\nFor some reason, when I try to do it the right way \n\nBuild path → Configure build path → External jars\n\nit just doesn't take them.  \n\nThe trick is that I have to put the files int my Web App Libraries folder and the only way to do that (that I can see) is to \"click and drop\" into my \nWEB-INF/lib\n folder. In this way, it automatically shows up in my Web App Libraries.",
+    "chunk_id": "so-8884818-001"
+  },
+  {
+    "id": "so-67082576",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/67082576/type-javacompile-property-options-compilerargumentproviders-apt0-name-is-mi",
+    "title": "Type 'JavaCompile' property 'options.compilerArgumentProviders.apt$0.name' is missing an input or output annotation. error after upgrading to Gradle 7",
+    "content": "After upgrading to Gradle 7.0 and making a build, I'm getting following failure:\n\n> Task :compileJava FAILED\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nSome problems were found with the configuration of task ':compileJava' (type 'JavaCompile').\n  - Type 'JavaCompile' property 'options.compilerArgumentProviders.apt$0.name' is missing an input or output annotation.\n\n    Reason: A property without annotation isn't considered during up-to-date checking.\n\n    Possible solutions:\n      1. Add an input or output annotation.\n      2. Mark it as @Internal.\n\n    Please refer to https://docs.gradle.org/7.0/userguide/validation_problems.html#missing_annotation for more details about this problem.\n  - Type 'JavaCompile' property 'options.compilerArgumentProviders.apt$0.publicType' is missing an input or output annotation.\n\n    Reason: A property without annotation isn't considered during up-to-date checking.",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "gradle",
+      "gradlew"
+    ],
+    "solution": "For anybody with the same issue: As noted by \nBjørn\n, the apt plugin was the culprit in my Gradle build file. I removed the generic one (\nid \"net.ltgt.apt\"\n) and the IntelliJ one (\nid \"net.ltgt.apt-idea\"\n), and my build file worked again.",
+    "chunk_id": "so-67082576-001"
+  },
+  {
+    "id": "so-53450897",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/53450897/how-to-set-spring-main-allow-bean-definition-overriding-to-true-in-a-spring-boot",
+    "title": "How to set spring.main.allow-bean-definition-overriding to true in a Spring boot 2.1.0 starter configuration",
+    "content": "I maintain a spring-boot-starter that customizes the error attributes returned when, for instance, an unknown endpoint is called.\nThis is done by overriding the \norg.springframework.boot.web.servlet.error.ErrorAttributes\n bean.\n\nEverything worked fine with 2.0.6, but \n2.1.0 disables bean overriding by default\n, making the starter now fail with the following message.\n\nInvalid bean definition with name 'errorAttributes' defined in class\npath resource\n[com/mycompany/springboot/starter/config/ErrorsConfig.class]: Cannot\nregister bean definition [Root bean: class [null]; scope=;\nabstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0;\nautowireCandidate=true; primary=false;\nfactoryBeanName=com.mycompany.springboot.starter.config.ErrorsConfig;\nfactoryMethodName=errorAttributes; initMethodName=null;\ndestroyMethodName=(inferred); defined in class path resource\n[com/mycompany/springboot/starter/config/ErrorsConfig.class]] for bean\n'errorAttributes': There is already [Root bean: class [null]; scope=;",
+    "tags": [
+      "spring-boot",
+      "spring-boot-configuration"
+    ],
+    "solution": "Spring Boot's \nErrorAttributes\n bean is defined by \nErrorMvcAutoConfiguration\n. It is annotated with \n@ConditionalOnMissingBean\n so it will back off if an \nErrorAttributes\n bean has already been defined. As the bean defined by your \nErrorsConfig\n class is attempting to override Boot's \nErrorAttributes\n bean rather than causing it to back off, your \nErrorsConfig\n class must be getting processed after Boot's \nErrorMvcAutoConfiguration\n class. This means that you have an ordering problem in your starter.\n\nThe order in which auto-configuration classes are processed can be controlled using \n@AutoConfigureBefore",
+    "chunk_id": "so-53450897-001"
+  },
+  {
+    "id": "so-49831485",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/49831485/angular-6-and-karma-can-not-load-angular-devkit-build-angular-it-is-not-reg",
+    "title": "Angular 6 and karma 'Can not load \"@angular-devkit/build-angular\", it is not registered'",
+    "content": "I had to migrate to the newest angular version. After that, karma tests stopped working and just keep crushing with an error log:\n\n14 04 2018 14:17:00.453:ERROR [preprocess]: Can not load \"@angular-devkit/build-angular\", it is not registered!\n    Perhaps you are missing some plugin?\n\n...\\parkandrest-ui\\node_modules\\@angular-devkit\\build-angular\\src\\angular-cli-files\\plugins\\packages\\angular_devkit\\build_angular\\src\\angular-cli-files\\plugins\\karma.ts:52\n  const options = config.buildWebpack.options;\n                                        ^ TypeError: Cannot read property 'options' of undefined\n      at init (...\\parkandrest-ui\\node_modules\\@angular-devkit\\build-angular\\src\\angular-cli-files\\plugins\\packages\\angular_devkit\\build_angular\\src\\angular-cli-files\\plugins\\karma.ts:52:39)\n      at Array.invoke (...\\parkandrest-ui\\node_modules\\di\\lib\\injector.js:75:15)\n      at Injector.get (...\\parkandrest-ui\\node_modules\\di\\lib\\injector.js:48:43)\n      at E:\\Workspace\\Training\\spring-boot-tutorial\\parkandrest-ui\\node_modules\\karma\\lib\\server.js:166:20\n      at Array.forEach ()\n      at Server._start (...\\parkandrest-ui\\node_modules\\karma\\lib\\server.js:165:21)\n      at Injector.invoke (...\\parkandrest-ui\\node_modules\\di\\lib\\injector.js:75:15)\n      at Server.start (...\\parkandrest-ui\\node_modules\\karma\\lib\\server.js:126:18)\n      at Object.\n\nMy karma.conf.js file looks like this:\n",
+    "tags": [
+      "node.js",
+      "angular",
+      "karma-runner"
+    ],
+    "solution": "My solution was a little different, as I had to move the karma.conf.js.\n\nUpdate all dependencies and make sure the app itself works as intented \n\nIf not done already: Replacing every occurrence of \n@angular/cli\n with \n@angular-devkit/build-angular\n in the karma.conf.js\n\nRemoving the \nfiles\n and the \npreprocessor\n configs from the karma.conf.js completely. This is all defined in the angular.json and should be handled automatically by the @anguler-devkit karma plugin.",
+    "chunk_id": "so-49831485-001"
+  },
+  {
+    "id": "so-15065734",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/15065734/spring-framework-no-message-found-under-code-for-locale",
+    "title": "Spring framework: No message found under code for locale",
+    "content": "This is my messageResource declaration\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:p=\"http://www.springframework.org/schema/p\"\n    xmlns:context=\"http://www.springframework.org/schema/context\"\n    xsi:schemaLocation=\"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd\n    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd\">\n\n    <!-- Auto-detect controllers in this package -->\n    <context:component-scan base-package=\"levelup.world.web\" />\n\n    <!-- Prepend /WEB-INF/jsp/ and append .jsp to the view name -->\n    <bean id=\"viewResolver\"\n        class=\"org.springframework.web.servlet.view.InternalResourceViewResolver\">\n        <property name=\"prefix\" value=\"/WEB-INF/jsp/\" />\n        <property name=\"suffix\" value=\".jsp\" />\n    </bean>\n",
+    "tags": [
+      "spring",
+      "spring-mvc",
+      "message"
+    ],
+    "solution": "In general such issue appears not because of non-existence locale, but because \nMessageBundle\n is configured improperly. In your case you seem to need to remove \"/\" in your basename.\n\n<bean id=\"messageSource\"\n     class=\"org.springframework.context.support.ReloadableResourceBundleMessageSource\"\n     p:basename=\"/WEB-INF/messages\" />\n\nWhy it is so:\n\nIf you have \nmessages.properties\n and \nmessages_en.properties\n bundle, then bundle name is \nmessages\n. If you have them in the \nWEB-INF\n folder, then basename is \n/WEB-INF/messages",
+    "chunk_id": "so-15065734-001"
+  },
+  {
+    "id": "so-25985752",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/25985752/including-profiles-with-spring-profiles-include-seems-to-override-instead-of-inc",
+    "title": "Including profiles with spring.profiles.include seems to override instead of include",
+    "content": "I'm trying to partition configuration properties for several Spring Boot applications. I'm using Spring Boot 1.1.6, and our configuration properties are expressed in YAML in the usual application.yml style. I've created various profiles for common base parameters, common DB parameters, etc. I was trying to use the include feature mentioned in the Spring Boot reference docs, but it seems to work as an override and not an include. I.e. exactly the opposite of what I want. Given the following content in application.yml, I would have expected the property \nname\n to have the value \nbar\n when the \nbar\n profile is active, but instead it gets set to \nfoo\n (from the included profile). I thought the notion of including meant that it was loaded first, and any identically named properties set in the new profile would override those from the included profile. Kind of like if a subclass is shadowing a field from the superclass, any instance of the subclass would reflect the shadowed value. Here's the file:\n\nspring:\n  profiles: foo\nname: foo\n\n--- # New YAML doc starts here\n\nspring:\n  profiles: \n    include: foo\n  profiles: bar",
+    "tags": [
+      "spring",
+      "spring-boot"
+    ],
+    "solution": "Try the following for \nfoo\n to include but override \nbar\n, seems to be working for my solution\n\nspring:\n    profiles:\n        include: bar\n        active: foo,bar\n\nedit:\n please mind, that it's a \"hack\", not officially supported and it's for 2016 version",
+    "chunk_id": "so-25985752-001"
+  },
+  {
+    "id": "so-8846586",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8846586/no-session-found-for-current-thread-spring-3-1-x-and-hibernate-4",
+    "title": "No Session found for current thread (Spring 3.1.X and Hibernate 4)",
+    "content": "I'm trying to set up my project using Spring 3.1 and Hibernate 4.  I've been following some tutorials online.  I'm getting a strange error that according to the spring forums should have been fixed with Spring 3.1.  \nSpring Bug Tracker\n\nWhen my service calls \ngetCurrentSession()\n, it throws the following exception:\n\norg.hibernate.HibernateException: **No Session found for current thread**] with root cause org.hibernate.HibernateException: No Session found for current thread\nat org.springframework.orm.hibernate4.SpringSessionContext.currentSession(SpringSessionContext.java:97) at\norg.hibernate.internal.SessionFactoryImpl.getCurrentSession(SessionFactoryImpl.java:881)\n\n****EDIT: updated my spring-dao.xml according to the Spring \nSpring 3.1 Documentation for Transactions\n.  I've tried swapping out my datasource with a org.apache.commons.dbcp.BasicDataSource.  Are there any properties I am missing from my configuration that could be causing this? ****\n\nHere's my spring-dao.xml:\n\n <!-- Enable annotation style of managing transactions -->\n<tx:annotation-driven transaction-manager=\"transactionManager\" />   \n",
+    "tags": [
+      "java",
+      "hibernate",
+      "spring",
+      "spring-3",
+      "hibernate-4.x"
+    ],
+    "solution": "I had this problem with spring-4.0.6 and hibernate-4.3.6.\n\nSolution is to move all annotation-driven, component-scan, annotation-driven directives from root-context.xml to servlet-context.xml:\n\n<mvc:annotation-driven />\n<context:component-scan base-package=\"ru.dd.demo\" />\n<tx:annotation-driven transaction-manager=\"transactionManager\" />\n\ndataSource, sessionFactory and transactionManager can be still defined at root-context.xml.",
+    "chunk_id": "so-8846586-001"
+  },
+  {
+    "id": "so-31692863",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31692863/what-is-the-best-way-to-test-that-a-spring-application-context-fails-to-start",
+    "title": "What is the best way to test that a spring application context fails to start?",
+    "content": "I use the spring-boot-starter-web and spring-boot-starter-test.\n\nLet's say I have a class for binding configuration properties:\n\n@ConfigurationProperties(prefix = \"dummy\")\npublic class DummyProperties {\n\n    @URL\n    private String url;\n\n    // getter, setter ...\n\n}\n\nNow I want to test that my bean validation is correct. The context should fail to start (with a specfic error message) if the property \ndummy.value\n is not set or if it contains an invalid URL. The context should start if the property contains a valid URL. (The test would show that \n@NotNull\n is missing.)\n",
+    "tags": [
+      "spring",
+      "junit",
+      "spring-boot",
+      "spring-test"
+    ],
+    "solution": "Why is that an integration test to begin with? Why are you starting a full blown Spring Boot app for that? \n\nThis looks like unit testing to me. That being said, you have several options:\n\nDon't add \n@IntegrationTest\n and Spring Boot will not start a web server to begin with (use \n@PropertySource\n to pass value to your test but it feels wrong to pass an invalid value to your whole test class)\n\nYou can use \nspring.main.web-environment=false\n to disable the web server (but that's silly given the point above)\n\nWrite a unit test that process that \nDummyProperties\n of yours. You don't even need to start a Spring Boot application for that. Look at \nour own test suite\n\nI'd definitely go with the last one. Maybe you have a good reason to have an integration test for that?",
+    "chunk_id": "so-31692863-001"
+  },
+  {
+    "id": "so-21726119",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/21726119/how-to-access-system-properties-in-thymeleaf-template",
+    "title": "How to access system properties in Thymeleaf template?",
+    "content": "I need to access system properties in a Thymeleaf template. It would be nice if this was possible so that I don't have to populate the spring mvc model explicitly with properties. I'm trying to use SPEL for this purpose but it's not working.\n\n<h2 th:text=\"${ systemProperties['serverName'] }\">Service name</h2>\n\n<h2 th:text=\"*{ systemProperties['serverName'] }\">Service name</h2>\n\nBoth of these give me:\n\nCaused by: org.springframework.expression.spel.SpelEvaluationException: EL1012E:(pos 17): Cannot index into a null value\n\nEven if I try to access a jdk property it gives the same error so I know it's not the fact that the property is missing. What am I doing wrong or is there another way to do this?",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "thymeleaf",
+      "spring-el"
+    ],
+    "solution": "I use\n\n${@environment.getProperty('myPropertyName')}",
+    "chunk_id": "so-21726119-001"
+  },
+  {
+    "id": "so-59789821",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/59789821/spring-webclient-and-jsonpath-how-to-output-json-result-if-test-fails",
+    "title": "Spring WebClient and jsonPath - How to output json result if test fails",
+    "content": "We are testing with WebTestClient (SpringBoot) our GraphQL Backend and have problems to see why exactly the test failed. Our code looks like this:\n\nwebTestClient\n   .post().uri(GQLKonstanten.URL)\n   .body(GQLRequestInserter.from(movieDeleteGQL, variables))\n   .exchange()\n   .expectBody()\n   .jsonPath(\"$.errors\").doesNotExist()\n   .jsonPath(\"$.data.movie.id\")\n   .isEqualTo(movie.getId());\n\nWhat I get is a stacktrace with the following message:\n\njava.lang.AssertionError: No value at JSON path \"$.data.movie.id\"\n\n... \n\nCaused by: com.jayway.jsonpath.PathNotFoundException: Missing\n  property in path $['data']['movie']\n",
+    "tags": [
+      "spring-boot",
+      "testing",
+      "spring-webflux",
+      "spring-webclient"
+    ],
+    "solution": "Best way I found so far is to add a \n\n.expectBody()\n.consumeWith(System.out::println)\n\nIt prints out the json result always and not on error only. But it works for me.",
+    "chunk_id": "so-59789821-001"
+  },
+  {
+    "id": "so-34299066",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34299066/how-to-configure-spring-boot-application-to-use-aspectj-transactions",
+    "title": "How to configure spring boot application to use aspectj transactions?",
+    "content": "I would like to use transactions done by aspects in spring-boot aplication, but so far I mostly found help for more \"ordinary\" setups... \n\nWhat I've managed to set up so far?\n\nI've got those annotations on main class:\n\n@SpringBootApplication\n@EnableTransactionManagement(mode=AdviceMode.ASPECTJ)\n@EnableLoadTimeWeaving(aspectjWeaving=AspectJWeaving.ENABLED)\n\nAnd this in my properties:\n\nspring.jpa.properties.hibernate.current_session_context_class=org.springframework.orm.hibernate4.SpringSessionContext\n\nI'm starting application with java agents spring-instrument and aspectj-weaver and I can see aspects in stacktrace where I've used \n@Transactional\n so at least this is working.\n\nAlso, what is really strange, problem started only after I added second entity - first one worked without problem, but now I'm having this error:\n",
+    "tags": [
+      "hibernate",
+      "transactions",
+      "spring-boot",
+      "aspectj"
+    ],
+    "solution": "Ok. I'm an idiot, who didn't look what autoimport is doing.\n\nI've used \norg.springframework.transaction.annotation.Transactional\n in one place and \njavax.transaction.Transactional\n in another.\n\nAfter changing everything to spring provided @Transactional it started to work.",
+    "chunk_id": "so-34299066-001"
+  },
+  {
+    "id": "so-48566481",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/48566481/longvarchar-in-hibernate",
+    "title": "Longvarchar in Hibernate",
+    "content": "This is the property,\n\n@Column( name = \"description\")\nprivate String description;\n\nThis is MySql Table\n\nDuring compiling this error is thrown,\n\nCaused by: org.hibernate.tool.schema.spi.SchemaManagementException: Schema-validation: wrong column type encountered in column [description] in table [product]; found [longtext (Types#LONGVARCHAR)], but expecting [varchar(255) (Types#VARCHAR)]\n\nWhat I am missing?",
+    "tags": [
+      "java",
+      "database",
+      "hibernate",
+      "spring-boot"
+    ],
+    "solution": "You can either modify the database:\n\nALTER TABLE product MODIFY description VARCHAR(255);\n\nThis simple \nALTER TABLE\n command may fail if the description values are longer than 255 characters, so you may need to do it by creating a new column and transforming the values and dropping the original column.\n\nOr you can adjust the Java code:\n\n@Lob\n@Column(name = \"description\", columnDefinition = \"LONGTEXT\")\nprivate String description;\n\nYou can try to omit the \ncolumnDefinition\n first, it may be the default MySQL text LOB for Hibernate.",
+    "chunk_id": "so-48566481-001"
+  },
+  {
+    "id": "so-29798190",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29798190/how-to-make-simple-property-validation-when-using-spring-value",
+    "title": "How to make simple property validation when using Spring @Value",
+    "content": "How can I check, if \n${service.property}\n is not an empty string and if so, throw some kind of readable exception? It must happen during Bean creation.\n\n@Component\npublic class Service {\n\n  @Value(\"${service.property}\")\n  private String property;\n}\n\nI am looking for the \neasiest\n way (least written code). Would be great if by using annotations.\n\nMy current solution is to perform \"handwritten\" validation inside setter for the property, but is a little too much code for such easy thing.\n\nHint: I looked for some way to use the SpEL, since I use it already inside \n@Value\n, but as far I have found out, it would not be that easy/clean. But could have overlooked something.",
+    "tags": [
+      "java",
+      "spring",
+      "validation",
+      "annotations"
+    ],
+    "solution": "You can use the component as a property placeholder itself. And then you may use any validation that you want.\n\n@Component\n@Validated\n@PropertySource(\"classpath:my.properties\")\n@ConfigurationProperties(prefix = \"my\")\npublic class MyService {\n\n    @NotBlank\n    private String username;\n\n    public void setUsername(String username) {\n        this.username = username;\n    }\n\n    ...\n}\n\nAnd your \nmy.properties",
+    "chunk_id": "so-29798190-001"
+  },
+  {
+    "id": "so-70292425",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/70292425/embeddedkafka-failing-since-spring-boot-2-6-x-accessdeniedexception-appdat",
+    "title": "EmbeddedKafka failing since Spring Boot 2.6.X : AccessDeniedException: ..\\AppData\\Local\\Temp\\spring.kafka*",
+    "content": "e: this has been fixed through Spring Boot 2.6.5 (see \nhttps://github.com/spring-projects/spring-boot/issues/30243\n)\n\nSince upgrading to Spring Boot 2.6.X (in my case: 2.6.1), I have multiple projects that now have failing unit-tests on Windows that cannot start \nEmbeddedKafka\n, that do run with Linux\n\nThere is multiple errors, but this is the first one thrown\n\n...\n  .   ____          _            __ _ _\n /\\\\ / ___'_ __ _ _(_)_ __  __ _ \\ \\ \\ \\\n( ( )\\___ | '_ | '_| | '_ \\/ _` | \\ \\ \\ \\\n \\\\/  ___)| |_)| | | | | || (_| |  ) ) ) )\n  '  |____| .__|_| |_|_| |_\\__, | / / / /\n =========|_|==============|___/=/_/_/_/\n :: Spring Boot ::                (v2.6.1)\n\n2021-12-09 16:15:00.300  INFO 13864 --- [           main] k.utils.Log4jControllerRegistration$     : Registered kafka:type=kafka.Log4jController MBean",
+    "tags": [
+      "spring-kafka",
+      "spring-kafka-test"
+    ],
+    "solution": "While I will wait till kafka \n3.0.1\n is released, for anyone who would just switch to Testcontainers, but is not familiar how they can be set up:\n\nSample based on this initlzr: \nhttps://start.spring.io/#!type=maven-project&language=java&platformVersion=2.6.1&packaging=jar&jvmVersion=11&groupId=com.example&artifactId=demo&name=demo&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=kafka,testcontainers\n\nRunnable app\n\npackage com.example.demo;\n\nimport org.apache.kafka.clients.admin.NewTopic;\nimport org.springframework.boot.ApplicationRunner;\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.kafka.annotation.KafkaListener;\nimport org.springframework.kafka.core.KafkaTemplate;\n\nimport java.time.LocalDateTime;",
+    "chunk_id": "so-70292425-001"
+  },
+  {
+    "id": "so-49765687",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/49765687/redirect-uri-using-http-instead-of-https",
+    "title": "redirect_uri using http instead of https",
+    "content": "I'm using spring stack (Spring Boot 2.0.1.RELEASE) for creating a site that delegues user authentication/registration to Facebook via OAuth2. When I click the \"login with facebook\" button I get redirected to Facebook, but Spring Security OAuth2 is creating the redirect_uri parameter using http instead of https. The application uses https and I can't figure out where this \"http\" is coming from.\n\nSo, how can I make Spring create the redirect_uri parameter correctly?\n\nUPDATE\n\nSorry for the original post. It was late and I wanted to have the question posted before going sleep :-)\n\nWell, my application uses Spring Boot 2.0.1.RELEASE, which comes with Spring Security 2.0.1.RELEASE and Spring Security OAuth2 5.0.4.RELEASE. My application uses Facebook for registering and authenticating users. Currently I have a test environment running in AWS (Beanstalk) and using Amazon's SSL certificate.\n\nWhen I first wrote the post my issue was that the redirect_uri parameter sent by my application (by SS actually) to Facebook had a http prefix, instead of https. This was causing an error in Facebook, which only accepts https redirect urls.\n\nReading the docs I found the \nspring.security.oauth2.client.registration.facebook.redirect-uri-template\n property, which I set to \nhttps://[my domain]/login/oauth2/code/{registrationId}\n. Now Facebook processes my authentication requests and posts back to my application.\n\nHowever, with the previous parameter set, now the problem has changed. Now when the Facebook's callback hits my application at AWS I get the following exception (from the logs):\n",
+    "tags": [
+      "spring",
+      "facebook",
+      "spring-boot",
+      "spring-security",
+      "oauth-2.0"
+    ],
+    "solution": "I faced with exact the same problem but with Google.\n\nHaving the following architecture of microservices\n\nGoogle Auth Server\n\n  Zuul Gateway (:8080)\n     /   \\\n    /     \\\n   /       \\\nOther      OAuth2Client (:5000)\n\nwhile running at local machine everything works fine, but in AWS Elastic Beanstalk I catch the very same exception. \n\nAfter debugging, I found out that in my case, when OAuth2Client is behind Zuul proxy (they implemented in separate microservices) I really get different redirect_uri values in the check inside \nOAuth2LoginAuthenticationProvider\n:\n\nif (!authorizationResponse.getRedirectUri().equals(authorizationRequest.getRedirectUri())) {\n    OAuth2Error oauth2Error = new OAuth2Error(INVALID_REDIRECT_URI_PARAMETER_ERROR_CODE);",
+    "chunk_id": "so-49765687-001"
+  }
+]

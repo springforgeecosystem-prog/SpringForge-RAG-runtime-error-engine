@@ -1,0 +1,319 @@
+[
+  {
+    "id": "so-40605834",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/40605834/spring-jparepositroy-save-does-not-appear-to-throw-exception-on-duplicate-save",
+    "title": "Spring JpaRepositroy.save() does not appear to throw exception on duplicate saves",
+    "content": "I'm currently playing around on Spring boot 1.4.2 in which I've pulled in Spring-boot-starter-web and Spring-boot-starter-jpa.\n\nMy main issue is that when I save a new entity it works fine (all cool).\n\nHowever if I save a new product entity with the same id (eg a duplicate entry), it does not throw an exception. I was expecting ConstrintViolationException or something similar.\n\nGiven the following set up:\n\nApplication.java\n\n@SpringBootApplication\npublic class Application {\n    public static void main(String[] args) {\n        SpringApplication.run(Application.class, args);\n    }\n\nProductRepository.java\n\n@Repository\npublic interface ProductRepository extends JpaRepository<Product, String> {}",
+    "tags": [
+      "java",
+      "spring-data",
+      "spring-data-jpa"
+    ],
+    "solution": "I think you are aware of  \nCrudRepository.save()\n is used for both insert and update. If an Id is non existing then it will considered an insert if Id is existing it will be considered update. You may get an Exception if your send the Id as null.\n\nSince you don't have any other annotations apart from \n@Id\n on your \nid\n variable, The Unique Id generation must be handled by your code Or else you need to make use of \n@GeneratedValue\n annotation.",
+    "chunk_id": "so-40605834-001"
+  },
+  {
+    "id": "so-31506805",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31506805/org-postgresql-util-psqlexception-error-relation-app-user-does-not-exist",
+    "title": "org.postgresql.util.PSQLException: ERROR: relation \"app_user\" does not exist",
+    "content": "I have an application that I'm using spring boot and postgres. I'm getting this error when I try to create a user.\n\nWhen I run this query on my database, I get the same error:\n\nselect * from APP_USER\n\nERROR:  relation \"app_user\" does not exist\nLINE 1: select * from APP_USER\n                      ^\n********** Error **********\n\nERROR: relation \"app_user\" does not exist\nSQL state: 42P01\n\nBut if I change that to:\n\nselect * from \"APP_USER\"\n\nIt works.\n",
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot"
+    ],
+    "solution": "PostgreSQL is following the SQL standard and in that case that means that identifiers (table names, column names, etc) are forced to lowercase, except when they are quoted. So when you create a table like this:\n\nCREATE TABLE APP_USER ...\n\nyou actually get a table \napp_user\n. You apparently did:\n\nCREATE TABLE \"APP_USER\" ...\n\nand then you get a table \n\"APP_USER\"\n.\n\nIn Spring, you specify a regular string for the table name, in capital letters, but that gets spliced into a query to the PostgreSQL server without quotes. You can check this by reading the PostgreSQL log files: it should show the query that Spring generated followed by the error at the top of your message.\n\nSince you have very little control over how Spring constructs queries from entities, you are better off using SQL-standard lower-case identifiers.",
+    "chunk_id": "so-31506805-001"
+  },
+  {
+    "id": "so-12107503",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/12107503/adding-error-message-to-spring-3-databinder-for-custom-object-fields",
+    "title": "Adding error message to Spring 3 DataBinder for custom object fields",
+    "content": "I'm trying to manually add an individual email error message to my model but nothing is displaying in the view.\n\nI think it may be how I'm creating or attached the ObjectError to the BindingResult.\n\nI'm adding the error inside the catch.\n\nHere is the contents of result.errors when I leave email field empty and JSR-303 annotations kick in (error displays in view):\n\n[Field error in object 'user' on field 'email': rejected value []; codes [NotEmpty.user.email,NotEmpty.email,NotEmpty.java.lang.String,NotEmpty]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.email,email]; arguments []; default message [email]]; default message [may not be empty]]\n\nHere is the contents of of result.errors after I manually add the ErrorObject(email error does not display in view):\n\n[Error in object 'email': codes []; arguments []; default message [An account already exists for this email.]]\n\nController:\n\n@RequestMapping(value = \"/registration\", method = RequestMethod.POST)\n    public ModelAndView post(@Valid User user, BindingResult result)\n    {\n",
+    "tags": [
+      "spring-mvc",
+      "bean-validation"
+    ],
+    "solution": "I usually call \nresult.rejectValue(\"property\", \"error.object\");\n to add errors to \nBindingResult\n. If you want to add a global object error, you could use \nresult.reject(\"error.object\");\n.\n\nSo, in your code, instead of:\n\nObjectError error = new ObjectError(\"email\",\"An account already exists for this email.\");\nresult.addError(error);\n\ntry with:\n\nresult.rejectValue(\"email\", \"error.user\", \"An account already exists for this email.\");\n\nCheck the reference \nhere\n.",
+    "chunk_id": "so-12107503-001"
+  },
+  {
+    "id": "so-2109476",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/2109476/how-to-handle-dataintegrityviolationexception-in-spring",
+    "title": "How to handle DataIntegrityViolationException in Spring?",
+    "content": "I need to show custom messages in my Spring 3.0 application. I have a database with Hibernate and there are several constraints. I have doubts in how \nDataIntegrityViolationException\n should be handled in a good way. I wonder if there is a way to map the exception with a message set in a properties file, as it is possible in Constraints validation. Could I handle it automatically in any way or I have to catch this exception in each controller?",
+    "tags": [
+      "java",
+      "spring",
+      "exception",
+      "spring-mvc"
+    ],
+    "solution": "The problem with showing user-friendly messages in the case of constraint violation is that the constraint name is lost when Hibernate's \nConstraintViolationException\n is being translated into Spring's \nDataIntegrityViolationException\n.\n\nHowever, you can customize this translation logic. If you use \nLocalSessionFactoryBean\n to access Hibernate, you can supply it with a custom \nSQLExceptionTranslator\n (see \nLocalSessionFactoryBean.jdbcExceptionTranslator\n). This exception translator can translate a \nConstraintViolationException\n into your own exception class, preserving the constraint name.",
+    "chunk_id": "so-2109476-001"
+  },
+  {
+    "id": "so-9842672",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/9842672/best-practice-propagating-unique-violation-exceptions-to-ui",
+    "title": "Best practice propagating Unique Violation Exceptions to UI",
+    "content": "We are working on Java web project based on JPA 2, Hibernate, Spring 3 and JSF 2 running in Tomcat 7. We are using Oracle 11g as database. \n\nWe are currently holding a debate on approaches to populate database constraint violations as user-friendly messages to the UI. More or less we see two ways, both are not really satisfying. Could somebody give some advise?\n\nApproach 1 - Validate programmatically and throw specific exception\n\nIn CountryService.java each Unique constraint will be validated and a corresponding exception is thrown. The exceptions are handled individually in a backing bean.\n\nAdvantage\n: Easy to understand and maintain. Specific User messages possible.\n\nDisadvantage\n: A lot of code just for having nice messages. Basically all DB Constraints are written again in the application. A lot of queries - unnecessary db load.\n\n@Service(\"countryService\")\npublic class CountryServiceImpl implements CountryService {\n\n    @Inject\n    private CountryRepository countryRepository;\n",
+    "tags": [
+      "spring",
+      "hibernate",
+      "jsf",
+      "jpa",
+      "constraints"
+    ],
+    "solution": "Approach 1 will not work in a concurrent scenario! -- There is always a change that somebody else insert a new database record after you checked but before you added your database record. (except you use isolation level serializable, but this is highly unlikely)\n\nSo you have to handle the DB constraint violation exceptions. But I recommend to catch the database exception that indicates the unique violation and throw a more meaning full like you suggested in Approach 1.",
+    "chunk_id": "so-9842672-001"
+  },
+  {
+    "id": "so-1246803",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/1246803/constraintviolationexception-vs-dataintegrityviolationexception",
+    "title": "ConstraintViolationException VS DataIntegrityViolationException",
+    "content": "I am writing a Spring app, and it seems that when I run into database errors, sometimes Hibernate's \nConstraintViolationException\n is thrown and sometimes Spring's \nDataIntegrityViolationException\n is thrown.  Is there a reason one might be thrown and not the other?  Do they mean different things?",
+    "tags": [
+      "hibernate",
+      "spring"
+    ],
+    "solution": "If you execute Hibernate calls via the \nHibernateTemplate\n, then Spring will translate any Hibernate exceptions (e.g. \nConstraintViolationException\n) into the Spring exception hierarchy (e.g. \nDataIntegrityViolationException\n). If you don't use \nHibernateTemplate\n, then the native Hibernate exceptions will go through. Both are \nRuntimeExceptions\n, so don't need explicit exception handling, so it's not always obvious which one you're going to see.",
+    "chunk_id": "so-1246803-001"
+  },
+  {
+    "id": "so-72402946",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/72402946/h2-auto-increment-not-working-after-update-from-1-4-200-to-2-1-212",
+    "title": "H2 auto-increment not working after update from 1.4.200 to 2.1.212",
+    "content": "We are upgrading an application from spring-boot 2.4.3 to 2.7.0. Hibernate core version is 5.6.9.Final.\n2.7.0 is the first one to use H2 database 2.1.212 and we are using it for tests.\nI made some changes based on their guide to migrate to 2.0 but I'm facing one issue for which I haven't found a solution.\n\nIn some integration tests, we are using sql scripts to insert data before running the tests in that class. For example, the scripts insert 3 items in a table, then the test inserts a 4th one and updates one of the initial 3 which already existed.\n\nThe test which does the insert fails with the following error\n\nDataIntegrityViolationException. Error message: could not execute statement; SQL [n/a]; constraint [\"PRIMARY KEY ON studio.exercise(id) ( /* key:1 */ 1, 'Test Exercise', FALSE, 'TEST', NULL, 1, 'TEST', TIMESTAMP '2021-01-01 16:00:13', NULL, NULL)\"; \nSQL statement: insert into exercise (id, created_by, created_on, modified_by, modified_on, archived, image, organization_id, title, type) values (default, ?, ?, ?, ?, ?, ?, ?, ?, ?) [23505-212]]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement\n\nIt complains about the fact that it can't insert item with id 1 because another item with that id already exists (inserted by the script). But in the previous H2 database version this wasn't an issue.\n\nI think that this thread is related to mine but I can't see the understand the proposed solution\n\nAUTO_INCREMENT in H2 database doesn't work when requesting with Postman",
+    "tags": [
+      "hibernate",
+      "h2",
+      "auto-increment"
+    ],
+    "solution": "AUTO_INCREMENT\n is a feature of MySQL and its forks.\n\nNew versions of H2 have only standard identity columns (\nGENERATED { BY DEFAULT | ALWAYS } AS IDENTITY\n). H2 still accepts \nAUTO_INCREMENT\n and some other vendor-specific clauses in some compatibility modes, but they all are converted to identity columns anyway.\n\nGENERATED BY DEFAULT AS IDENTITY\n columns also allow manual insertion of value (\nGENERATED ALWAYS AS IDENTITY\n clause doesn't allow it). When you insert such value it doesn't adjust base value of a sequence generator by default, that's why you see such exceptions. This behavior is correct for standard identity columns. Normally you shouldn't provide own values for them.\n\nCREATE TABLE TEST(\n    ID BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,\n    A INTEGER,\n    B INTEGER);\n-- Bad insertion, may create problems in the future\nINSERT INTO TEST(ID, A, B) VALUES (1, 10, 11), (2, 12, 13);",
+    "chunk_id": "so-72402946-001"
+  },
+  {
+    "id": "so-52456783",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/52456783/cannot-catch-dataintegrityviolationexception",
+    "title": "Cannot catch DataIntegrityViolationException",
+    "content": "I am using Spring Boot 2 with spring-boot-starter-data-jpa with an underlying MariaDB.\n\nI have table with a unique key \"username\". I want to catch \nDataIntegrityViolationException\n if this constraint is violated, but it seems like Spring is logging \nDataIntegrityViolationException\n and does not rethrow the after logging(my best guess). \nMySQLIntegrityConstraintViolationException\n is thrown instead.\n\nI would like to catch \nDataIntegrityViolationException\n in \nUserService.createUser(..)\n.\n\nHere are a couple of code snippets:\n\n@Repository\n@Transactional(propagation = Propagation.MANDATORY)",
+    "tags": [
+      "spring",
+      "hibernate",
+      "spring-boot",
+      "jpa"
+    ],
+    "solution": "I solved the problem.\n\nThe exception does not occur until the transaction commits, which makes perfect sense.\n\nI was able to catch the exception outside the transaction scope in a controller class.",
+    "chunk_id": "so-52456783-001"
+  },
+  {
+    "id": "so-4410087",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/4410087/how-can-we-solve-the-dataintegrityviolationexception-in-spring-hibernate",
+    "title": "How can we solve the DataIntegrityViolationException in Spring Hibernate?",
+    "content": "I am using Spring Hibernate with HibernateSupportDao, when I try to send multiple rows of data to store in my db, it raises a \nDataIntegrityViolationException\n at a particular row. The same scenario has worked in remain in task on the same table. I do not get the problem even when I use the same code for the current task. Why was a \nDataIntegrityViolationException\n thrown and how can I rectify that?",
+    "tags": [
+      "hibernate",
+      "spring"
+    ],
+    "solution": "Directly from the API\n:\n\nException thrown when an attempt to insert or update data results in violation of an integrity constraint. Note that this is not purely a relational concept; unique primary keys are required by most database types.\n\nBasically it means that Hibernate tried to do something, but the database raised an exception.  Most common case might be that you are deleting a \nparent\n, but not deleting a \nchild\n with a \nforeign key\n to that \nparent\n.\n\nWhat are your \ntransitive\n persistence (i.e. cascade) settings?",
+    "chunk_id": "so-4410087-001"
+  },
+  {
+    "id": "so-37406714",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit",
+    "title": "Cannot test expected exception when using @Transactional with @Commit",
+    "content": "I am using Spring Boot 1.4.0.M3.\n\nI have an \n@Entity\n that has a \nusername\n which should be unique:\n\n@NotNull\n@Column(unique = true)\n@Pattern(regexp = \"[a-zA-Z_\\\\-\\\\.0-9]+\")\n@Size(min = 1, max = 30)\nprivate String username;\n\nUsing a Spring Data Repository, I want to test if there will be an exception when a duplicate username is used. This test works:\n\n@SpringBootTest\n@RunWith(SpringRunner.class)\npublic class UserRepositoryIntegrationTest {\n",
+    "tags": [
+      "java",
+      "spring",
+      "junit",
+      "transactions"
+    ],
+    "solution": "You don't need to commit. You just need to flush your \nunit of work\n to the database in order to see the \nDataIntegrityViolationException\n.\n\nThis is described in the note on \"false positives\" in the \nSpring Reference Manual\n. Note, however, that the \nEntityManager\n must be injected via \n@PersistenceContext\n (not \n@Autowired\n).\n\nThe following should work fine for you:\n\n@RunWith(SpringRunner.class)\n@SpringBootTest",
+    "chunk_id": "so-37406714-001"
+  },
+  {
+    "id": "so-54876448",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/54876448/how-to-catch-hibernate-constraintviolationexception-or-spring-dataintegrityviol",
+    "title": "How to catch Hibernate ConstraintViolationException (or Spring DataIntegrityViolationException?) in Spring Boot with JUnit 5",
+    "content": "I considered naming this “The Heisenberg Uncertainty Corollary for Java Exceptions”, but that was (a) too unwieldy, and (b) not sufficiently descriptive.\n\nBLUF: I’m trying to catch, in a JUnit 5 test against a Spring Boot application, the exception thrown when a tuple is persisted to a database table with a constraint violation (duplicate value in column marked “unique”). I can catch the exception in try-catch block, but not using JUnit’s “assertThrows()”.\n\nElaboration\n\nFor ease-of-replication, I have narrowed down my code to only the entity and repository, and two tests (one works, the other is the reason for this post). Also for ease-of-replication, I am using H2 as the database.\n\nI had read that there are potential transactional scope issues which can cause the constraint-generated exception to not be thrown within the scope of the invoking method. I confirmed this with a simple try-catch block around the statement “foos.aave(foo);” in shouldThrowExceptionOnSave() (without the “tem.flush()” statement).\n\nI decided to use TestEntityManager.flush() to force the transaction to commit/end, and was able to successfully catch an exception in the try-catch block. However, it was not the expected DataIntegrityViolationException, but PersistenceException.\n\nI attempted to use a similar mechanism (i.e., employ TestEntityManager.flush() to force the issue in the assertThrows() statement. But, “no joy”.\n\nWhen I try “assertThrows(PersistenceException.class,…”, the method terminates with a DataIntegrityViolationException.\n\nWhen I try “assertThrows(DataIntegrityViolationException.class,…”, I actually get a JUnit error message, indicating that the expected DataIntegrityViolationException didn’t match the actual exception. Which is…javax.persistence.PersistenceException!\n\nAny help/insight would be greatly appreciated.\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-data-jpa",
+      "junit5"
+    ],
+    "solution": "Side Notes\n\nYour project actually does not use JUnit Jupiter 5.4. Rather, it's using JUnit Jupiter 5.3.2 as managed by Spring Boot. See \nGradle 5 JUnit BOM and Spring Boot Incorrect Versions\n for the solution.\n\nThere is no need to \nflush()\n in your \n@BeforeEach\n method.\n\nYou should remove your \n@AfterEach\n method since all changes to the database will be rolled back automatically with the test-managed transaction.\n\nCatching a ConstraintViolationException\n\nYou actually cannot catch the \nConstraintViolationException",
+    "chunk_id": "so-54876448-001"
+  },
+  {
+    "id": "so-5121327",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/5121327/translating-persistenceexception-to-dataaccessexception-in-spring",
+    "title": "Translating PersistenceException to DataAccessException in Spring",
+    "content": "I'm trying to handle unique key constraint violations in a Spring + JPA + Hibernate environment.\n\nI use \nPersistenceExceptionTranslationPostProcessor\n to translate a \nPersistenceException\n to a \nDataAccessException\n. When there's a unique key constraint violation, I'd expect a \nDuplicateKeyException\n or a \nDataIntegrityViolationException\n thrown, but all I get is a \nJpaSystemException\n that wraps a \nPersistenceException\n.\n\nIsn't the whole point of using the \nDataAccessException",
+    "tags": [
+      "java",
+      "spring",
+      "jpa"
+    ],
+    "solution": "Apparently you don't have \njpaDialect\n set. For Hibernate it should look like this:\n\n<bean id=\"entityManagerFactory\" class=\"org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean\">\n    <property name=\"jpaVendorAdapter\">\n        <bean class=\"org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter\"/>\n    </property>\n    <!-- ... -->\n</bean>",
+    "chunk_id": "so-5121327-001"
+  },
+  {
+    "id": "so-45328135",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/45328135/rest-idempotence-implementation-how-to-rollback-when-a-request-has-already-bee",
+    "title": "REST Idempotence implementation - How to rollback when a request has already been processed?",
+    "content": "What I am trying to achieve\n\nWe have a REST API built with Spring Boot, JPA and Hibernate. \nThe clients using the API has an unreliable access to network. To avoid having too many errors for the end user, we made the client retry unsuccessful requests (eg. after a timeout occurs).\n\nAs we cannot be sure that the request has not already been processed by the server when sending it again, we need to make the POST requests idempotent. That is, sending twice the same POST request must not create the same resource twice. \n\nWhat I have done so far\n\nTo achieve this, here is what I did: \n\nThe client is sending a UUID along with the request, in a custom HTTP header. \n\nWhen the client resends the same request, the same UUID is sent. \n\nThe first time the server processes the request, the response for the request is stored in a database, along with the UUID.\n\nThe second time the same request is received, the result is retrieved from the database and the response is made without processing the request again. \n\nSo far so good. ",
+    "tags": [
+      "spring",
+      "hibernate",
+      "rest",
+      "transactions",
+      "idempotent"
+    ],
+    "solution": "Based on\n\nTo avoid having too many errors for the end user, \nwe made\n the client retry unsuccessful requests\n\nyou seem to have full control of the client code (great!) as well as the server.\n\nIt is, however, not clear whether the problem with the client's network is flakiness (the connection often randomly drops and requests are aborted) or slowness (timeouts), since you've mentioned both. So let's analyse both!\n\nTimeouts\n\nThe first things that I'd recommend are:\n\nadjusting the connection timeout on the server so that it is not closed before the server finishes the operation;\n\nadjusting the request timeout on the client to account for the slow operation on the server \nand\n the slowness of the client's network.\n",
+    "chunk_id": "so-45328135-001"
+  },
+  {
+    "id": "so-24740792",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/24740792/spring-exception-handling-controlleradvice-cannot-handle-httpservletresponse",
+    "title": "Spring Exception Handling - @ControllerAdvice cannot handle HttpServletResponse#sendError()",
+    "content": "I'm using \n@ControllerAdvice\n to implement a global exception handler but I got some issues with the use of \nHttpServletResponse#sendError()\n method. \n\n@ExceptionHandler\n can catch all kinds of exception, but not \nHttpServletResponse#sendError()\n invocations. I understand that \nHttpServletResponse#sendError()\n is not an exception, but I need to process it, and then redirect to a generic error page.\n\nI'm using Spring Security for authentication, and in the failed handler, I set status \n401\n to the response:\n\n@Override\npublic void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc"
+    ],
+    "solution": "Spring Security is a separate framework from Spring MVC. Spring Security is a Servlet filter (have a look in your \nweb.xml\n) which intercepts requests before they reach Spring MVC. You cannot process exceptions that happen at the Spring Security level in \n@ControllerAdvice\n (as \n@ControllerAdvice\n is part of Spring MVC).\n\nAs you said it yourself, \nHttpServletResponse#sendError()\n does not throw an exception. According to \nthis\n document, it \nsends an error response to the client using the specified status code and clears the buffer.\n\nIn your \nweb.xml\n file you can define static web pages (1) for error response codes and (2) for exceptions. For example:\n\n<error-page>",
+    "chunk_id": "so-24740792-001"
+  },
+  {
+    "id": "so-4288364",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/4288364/unable-to-catch-dataintegrityviolationexception-with-wrapped-transaction",
+    "title": "unable to catch DataIntegrityViolationException with wrapped transaction",
+    "content": "I'm using Spring 3 for managing DB transactions. Whenever an exception is raised, I catch the exception and return the corresponding message. But when Spring commits the transaction, the exception is raised again and wrapped in a \norg.springframework.dao.DataIntegrityValidationException\n. How can I handle that exception? should I use interceptors or something else? Has anyone already had this problem before?\n\nThanks in advance",
+    "tags": [
+      "hibernate",
+      "spring",
+      "spring-transactions"
+    ],
+    "solution": "If your transaction boundaries are at your service layer (if you have one, which you should), then you should catch the exception outside of the boundary.  The way Spring works is if an exception bubbles outside the transaction boundary, the transaction is rolled back.  By catching the exception you are stopping that process, which you probably dont want.\n\nInterceptors are a good way to deal with the exception outside of the transaction boundary.",
+    "chunk_id": "so-4288364-001"
+  },
+  {
+    "id": "so-77256992",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/77256992/how-to-catch-check-for-uniqueness-in-spring-boot-3",
+    "title": "How to catch check for Uniqueness in Spring Boot 3",
+    "content": "In my Spring Boot 3 project with hibernate 6 I am trying to check the a name is not in use before updating (and saving) a entity.\n\nI want to leave the method annotated with @Transactional and I want to be able to pass a message to the UI if the update/save fails.\n\nThere is a number of existing answers, but they all have issues. Here is what I have tried:\n\n1. Catch DataIntegtrityException\n\nThis way throws a custom exception - the con is that it doesn't work with @Transactional\n\n    //@Transactional - doesn't catch exception with @Transactional\n    public CarCreateDto updateCar(CarCreateDto updateCarDto, Long id) {\n        Car Car = CarRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(\"Car with \" + id + \" not found\"));\n        try {\n            CarMapper.partialUpdate(updateCarDto, Car);\n            CarRepository.save(Car);\n            return CarMapper.toDto(Car);\n        } catch (DataIntegrityViolationException e) {\n            throw new CarAlreadyExistsException(\"Car with name already exist\");\n        }",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "solution": "tl;dr: Use option 2.\n\nLet's take a look at the \nCrudRepository::save()\n and \nJpaRepository::saveAndFlush()\n implemented in \nSimpleJpaRepository\n:\n\nFirst, our goal is talking to the database and getting an immediate response (constraint violation or success) before going over the catch block.\n\nIsolated on our goal \nsaveAndFlush()\n with \n@Transactional\n has same behaviour as \nsave()\n without \n@Transactional",
+    "chunk_id": "so-77256992-001"
+  },
+  {
+    "id": "so-42462829",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/42462829/identify-constraint-name-that-trigger-dataintegrityviolationexception",
+    "title": "Identify constraint name that trigger DataIntegrityViolationException",
+    "content": "I am stuck with a issue of identify which constraint triggers DataIntegrityViolationException. I have two unique constraints: username and email but I have no luck trying to figure it out.\n\nI have tried to get the root cause exception but I got this message \n\nUnique index or primary key violation: \"UK_6DOTKOTT2KJSP8VW4D0M25FB7_INDEX_4 ON PUBLIC.USERS(EMAIL) VALUES ('copeland@yahoo.com', 21)\"; SQL statement:\ninsert into users (id, created_at, updated_at, country, email, last_name, name, password, phone, sex, username) values (null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) [23505-193]\n\nReading the error I know email constraint triggers the validation but I want to return to the user something like:\n\n{type: ERROR, message: \"The email already exist\"}\n\nI have read in other post and people handle it looking for a constraint name into the exception(eg, \nusers_unique_username_idx\n) and display a proper message to the user. But I couldn't get that type of constraint name\n\nMaybe I am missing a configuration. I am using:\n\nSpring Boot 1.5.1.RELEASE, JPA, Hibernate and H2\n\nMy ",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa"
+    ],
+    "solution": "You can specify unique constraints separately but you'd need to that on the entity level like \n\n@Entity(name = \"users\")\n@Table(name = \"users\", uniqueConstraints = {\n    @UniqueConstraint(name = \"users_unique_username_idx\", columnNames = \"username\"),\n    @UniqueConstraint(name = \"users_unique_email_idx\", columnNames = \"email\")\n})\npublic class User extends BaseEntity { ... }",
+    "chunk_id": "so-42462829-001"
+  },
+  {
+    "id": "so-32349479",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32349479/what-is-the-best-way-to-implement-custom-validation-in-spring-application",
+    "title": "What is the best way to implement custom validation in spring application?",
+    "content": "I'm (new in spring development) creating REST API for my application, CRUD operations are implemented successfully but now I want to implement server side validation. I've also read that there are several ways through which validation could be implemented.\n\nUsing given annotations -> @notempty, @email, etc... \n\nUsing custom validation -> extending validators\n\nI want to implement both of them in my application, With reference to that, \n\nis it good approach to follow?\n\nOR\n\nIs there any other ways through which validation can be implemented?\n\nController\n\n@RestController\npublic class EmployeeController {\n\n    @Autowired",
+    "tags": [
+      "java",
+      "spring",
+      "validation"
+    ],
+    "solution": "In your aproach you are using Server side validations but only in the controller layer. Have you tryied to use Bussines layer validations, like Hibernate Validation API \nhttp://hibernate.org/validator/\n\nI've used it in a recent project and form me it's a great way to keep data consistent. Some tweaks and utils were needed to make it work as we wanted but it was not too difficult. For example, this validations, by default, are only checked just after persisting a Object in database, but in our controller we needed to make this validations earlier, so you we had to implement a way to call validation mechanism that relies on hibernate validation mechanism. Or, as another example, we had to develop a similar system on a web service to return errors when incoming data was not valid.  \n\nOne way to use validations when needed is to implement it on all your bussines objects. They can inherit for a class like this:\n\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.HashSet;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.Set;\n\nimport javax.validation.ConstraintViolation;\nimport javax.validation.Validation;\nimport javax.validation.Validator;\nimport javax.xml.bind.annotation.XmlTransient;\n",
+    "chunk_id": "so-32349479-001"
+  },
+  {
+    "id": "so-2281870",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/2281870/recover-hibernate-session-state-after-a-failed-insert",
+    "title": "recover Hibernate session state after a failed insert",
+    "content": "The following code tries to insert an \nItem\n object to the db, using Spring+Hibernate. The Item has an Integer id field as primary key, as well as a \nname\n column which is subject to a unique constraint (simplified example).\n\nI know that the item's id is null (the item is transient) however the insert may still fail due to the unique constraint on the name field.\n\ntry {\n  getHibernateTemplate().save(myItem);\n  getHibernateTemplate().flush(); // exception thrown here if the name is not unique\n}\ncatch (DataIntegrityViolationException e) {\n  Item itemFromDb = (Item) getHibernateTemplate()\n    .find(\"from Item item where item.name = ?\",\n           myItem.getName()).get(0);\n  //\n  // copy some properties from myItem to itemFromDb\n  //\n  getHibernateTemplate.update (itemFromDb)",
+    "tags": [
+      "java",
+      "hibernate"
+    ],
+    "solution": "Hibernate does not guarantee anything about a session once a database exception is thrown.   You are supposed to roll-back.  If I understand Bozho's suggestion, he's saying that you should read from the name column first to ensure that the insert won't fail.  Makes sense to me.",
+    "chunk_id": "so-2281870-001"
+  },
+  {
+    "id": "so-66398951",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/66398951/populating-database-with-test-data-during-integration-tests-with-spring-boot",
+    "title": "Populating database with test data during integration tests with Spring Boot",
+    "content": "I'm trying to build simple CRUD with Spring Boot. Spring Data Jpa is used to deal with persistence.\nHere are my entities\n\n@Entity(name = \"meal\")\n@Table(name = \"meals\")\npublic class Meal extends AbstractBaseEntity {\n\n@Column(name = \"name\", nullable = false)\nprivate String name;\n@Column(name = \"cost\", nullable = false)\nprivate BigDecimal cost;\n@Column(name = \"cooking_time\", nullable = false)\nprivate Duration cookingTime;\n\n...\n\ngetters, setters and constructors omitted\n\n@Entity(name = \"order\")\n@Table(name = \"orders\")",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "solution": "If you look at the logs:\n\nHibernate: create sequence hibernate_sequence start with 1 increment by 1\n\ncreate table meals (id bigint not null, ...)\n\nHibernate: call next value for hibernate_sequence\nHibernate: insert into meals (cooking_time, cost, name, id) values (?, ?, ?, ?)\n\nSince the next value for sequence is \n1\n and the record with id value \n1\n is already saved (\n(1, 900000000000, 122.5, 'Soup')\n), it throws \nDataIntegrityViolationException\n\nTo fix the issue, you don't need to change the sql script and use the id values \n100",
+    "chunk_id": "so-66398951-001"
+  },
+  {
+    "id": "so-41703720",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/41703720/spring-boot-handle-custom-exceptions-using-controlleradvice-for-rest",
+    "title": "Spring boot: Handle Custom Exceptions using ControllerAdvice for REST",
+    "content": "I want to handle all exceptions at one place using @ControllerAdvice. I have written generic Exception handler class  which is: \n\n@ControllerAdvice(basePackageClasses = RepositoryRestExceptionHandler.class)\npublic class GenericRepositoryRestExceptionHandler{\n\n    @Autowired\n    MessageSource messageSource;\n\n    @ExceptionHandler\n    ResponseEntity<?> handleConflict(DataIntegrityViolationException e) {\n        return response(HttpStatus.CONFLICT, 40901, \"Operation cannot be performed. Integrity Constraint violated\", e.getRootCause().getMessage(), \"\");\n    }\n\n    @ExceptionHandler(InconsistentEditException.class)\n    ResponseEntity<?> handleInconsistentEditException(InconsistentEditException e){\n        return response(HttpStatus.CONFLICT, 40902, e.getMessage());\n    }\n\n    private ResponseEntity<RestError> response(HttpStatus status, int code, String msg) {\n        return response(status, code, msg, \"\", \"\");",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-data-rest"
+    ],
+    "solution": "You're missing one annotation:\n\n@EnableWebMvc\n@ControllerAdvice\npublic class GenericRepositoryRestExceptionHandler{\n\n    @Autowired\n    MessageSource messageSource;\n\n    @ResponseBody\n    @ExceptionHandler\n    ResponseEntity<?> handleConflict(DataIntegrityViolationException e) {\n        return response(HttpStatus.CONFLICT, 40901, \"Operation cannot be performed. Integrity Constraint violated\", e.getRootCause().getMessage(), \"\");\n    }\n\n    @ResponseBody\n    @ExceptionHandler(InconsistentEditException.class)\n    ResponseEntity<?> handleInconsistentEditException(InconsistentEditException e){\n        return response(HttpStatus.CONFLICT, 40902, e.getMessage());\n    }",
+    "chunk_id": "so-41703720-001"
+  },
+  {
+    "id": "so-15731297",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/15731297/jpa-hibernate-spring-dealing-with-unique-constraint-violations",
+    "title": "JPA (Hibernate) + Spring: Dealing with unique constraint violations",
+    "content": "I have a entity A with a unique field and that field basically defines the entity, meaning it it is equal then then entity is also exactly the same.\n\nA second point is that it is lets say in no way exceptional if that constraint is violated. Meaning it is fully expected that users will try to input duplicates.\n\nIn case of duplicate, the application should silently chose the already existing entity. My question is now what I should do especially when saving entities containing a list of As.\n\njust catch the exception and go from there\n\nI'm not sure this is that easily possible as DataIntegrityViolationException doesn't hold any easily processable information like what entity was affected in case of Cascaded persist!!!\n\nCheck before save (persist) and replace submitted entity with existing one (that has an id set)\n\nI like this more however there is a considerable overhead because then there are possibly multiple selects (existence checks) before an insert for every single insert.\n\nWhat is the better approach?",
+    "tags": [
+      "hibernate",
+      "jpa",
+      "unique-constraint"
+    ],
+    "solution": "for option 1) you are looking for something like \nhttp://dev.mysql.com/doc/refman/5.5/en/insert-on-duplicate.html\n but there is nothing equivalent at JPA/hibernate level for that command (I don't think that's ANSI SQL). Trying to catch the exception and \"go from there\" is a bad idea because transactions will get rolled back and you will have to go through many problems to make it behave like you want.\n\nFor option 2), which I believe is the standard JPA/hibernate practice, you will not only have to query and possibly load the entity from DB, but also copy your changes from your transient object to the loaded object and then let JPA to save your updates. This is quite a hassle and you will have to be careful with any cascade operations that you are relying on, because you will probably need to avoid overwriting persisted objects with transient ones. It is a complicated problem for which JPA/Hibernate has no good solution.",
+    "chunk_id": "so-15731297-001"
+  }
+]

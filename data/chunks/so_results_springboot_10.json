@@ -1,0 +1,163 @@
+[
+  {
+    "id": "so-34595605",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34595605/how-to-manage-exceptions-thrown-in-filters-in-spring",
+    "title": "How to manage exceptions thrown in filters in Spring?",
+    "content": "I want to use generic way to manage 5xx error codes, let's say specifically the case when the db is down across my whole spring application. I want a pretty error json instead of a stack trace. \n\nFor the controllers I have a \n@ControllerAdvice\n class for the different exceptions and this is also catching the case that the db is stopping in the middle of the request. But this is not all. I also happen to have a custom \nCorsFilter\n extending \nOncePerRequestFilter\n and there when i call \ndoFilter\n i get the \nCannotGetJdbcConnectionException\n and it will not be managed by the \n@ControllerAdvice\n. I read several things online that only made me more confused. \n\nSo I have a lot of questions:\n\nDo i need to implement a custom filter? I found the \nExceptionTranslationFilter",
+    "tags": [
+      "java",
+      "spring",
+      "spring-security"
+    ],
+    "solution": "So this is what I did:\n\nI read the basics about filters \nhere\n and I figured out that I need to create a custom filter that will be first in the filter chain and will have a try catch to catch all runtime exceptions that might occur there. Then i need to create the json manually and put it in the response.\n\nSo here is my custom filter:\n\npublic class ExceptionHandlerFilter extends OncePerRequestFilter {\n\n    @Override\n    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {\n        try {\n            filterChain.doFilter(request, response);\n        } catch (RuntimeException e) {\n\n            // custom error response class used across my project\n            ErrorResponse errorResponse = new ErrorResponse(e);\n\n            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());",
+    "chunk_id": "so-34595605-001"
+  },
+  {
+    "id": "so-9633118",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/9633118/eclipse-the-hierarchy-of-the-type-is-inconsistent-with-configurable-annotat",
+    "title": "Eclipse The hierarchy of the type ... is inconsistent with @Configurable annotation",
+    "content": "I am developing a Spring/Vaadin/Hibernate application.\n\nEverything works but I still have the following error markers in Eclipse STS 2.8.1:\n\nThe hierarchy of the type BankView is inconsistent\nThe hierarchy of the type AbstractEntityView is inconsistent\n\nI have the following structure for my views:\n\npublic class BankView extends AbstractEntityView {  \n    @Resource private BankService bankService;\n\n    public void buildLayout() {\n        super.buildLayout();\n\n        // Use of the service here\n    }\n}\n\npublic abstract class AbstractEntityView extends AbstractView {  ",
+    "tags": [
+      "eclipse",
+      "spring",
+      "hierarchy",
+      "vaadin",
+      "configurable"
+    ],
+    "solution": "In fact the problem was because I made AbstractListView @Configurable. When I put this annotation on the final class (for example BankView), all the errors disappeared.\n\nThanks everyone for the help. If someone has the same error they will find a solution in the different answers.",
+    "chunk_id": "so-9633118-001"
+  },
+  {
+    "id": "so-48306302",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/48306302/spring-security-creating-403-access-denied-custom-response",
+    "title": "Spring security - creating 403 Access denied custom response",
+    "content": "I have a \nSpring Boot\n app based on \nREST\n api with \nJWT\n authentication. The problem is I cannot get rid of default \n403 Access Denied\n rest response which looks like this:\n\n{\n    \"timestamp\": 1516206966541,\n    \"status\": 403,\n    \"error\": \"Forbidden\",\n    \"message\": \"Access Denied\",\n    \"path\": \"/api/items/2\"\n}\n\nI created custom \nAccessDeniedHandler",
+    "tags": [
+      "java",
+      "spring",
+      "rest",
+      "spring-security",
+      "httpresponse"
+    ],
+    "solution": "I think I resolved the problem. Instead of creating an implementation of \nAccessDeniedHandler\n I had to create a custom \nAuthenticationEntryPoint\n and set it in exception handling.\n\nWebConfig\n now looks like this:\n\n@EnableWebSecurity\npublic class WebSecurity extends WebSecurityConfigurerAdapter {\n\n    private UserDetailsService userDetailsService;\n    private BCryptPasswordEncoder bCryptPasswordEncoder;\n\n    @Autowired\n    public WebSecurity(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {\n        this.userDetailsService = userDetailsService;\n        this.bCryptPasswordEncoder = bCryptPasswordEncoder;\n    }",
+    "chunk_id": "so-48306302-001"
+  },
+  {
+    "id": "so-13569303",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/13569303/handle-custom-exceptions-in-spring-security",
+    "title": "Handle Custom Exceptions in Spring Security",
+    "content": "We are creating a RESTful API with spring MVC + spring security + hibernate.\nThe API can produce both JSON and HTML.\nDoing a good error handling for spring security is giving me a headache:\n\nAuthentication can happen in various ways: BasicAuth, via different parameters in a POST request and also via web log-in.\nFor each authentication mechanism, there is a filter declared in the \n<http>\n namespace element of the spring security xml config.\n\nWe handle all our spring exceptions in a custom \nHandlerExceptionResolver\n. This works fine for all exceptions thrown in our controllers, but I don't know how to handle custom Exceptions thrown in the custom spring security filters.\nSince the spring security filter comes before any of our controllers are invoked we do not see exceptions that we throw in our custom spring security filters. \n\nI found this question here on stackoverflow: \n\nUse custom exceptions in Spring Security\n. However I don't understand where they handle the exceptions that are thrown there.\nWe tried this approach but our custom \nHandlerExceptionResolver",
+    "tags": [
+      "java",
+      "spring",
+      "exception",
+      "spring-security"
+    ],
+    "solution": "It's important to remember that the order of the filters in Spring Security matters.\n\nFrom \nSpring Security 3\n book:\n\nThe \nExceptionTranslationFilter\n will be able to handle and react to\n  only those exceptions that are thrown below it in the filter chain\n  execution stack. Users often get confused, especially when adding\n  custom filters in the incorrect order, as to why the expected behavior\n  differs from their application's actual exception handling—in many of\n  these cases, the order of the filters is to blame!\n\nIf your filters are about authorization it is a good practice to put them a the end of the chain as this approach is used by default authorization filters. That way you don't have to reinvent the wheel.\n\nStandard filters: \nTable in documentation\n",
+    "chunk_id": "so-13569303-001"
+  },
+  {
+    "id": "so-8742842",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8742842/how-to-handle-accessdeniedexception-in-spring-security",
+    "title": "How to handle AccessDeniedException in Spring Security?",
+    "content": "i am using \nspring security 3\n, and i want whenever the \nAccessDeniedException\n is thrown, the user get's redirected to specific page: \n\norg.springframework.security.access.AccessDeniedException: Access is denied\n    at org.springframework.security.access.vote.AffirmativeBased.decide(AffirmativeBased.java:71)\n    at org.springframework.security.access.intercept.AbstractSecurityInterceptor.beforeInvocation(AbstractSecurityInterceptor.java:203)\n    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:106)\n    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:83)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:97)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:78)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter.doFilter(RememberMeAuthenticationFilter.java:112)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:54)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)",
+    "tags": [
+      "spring",
+      "spring-security"
+    ],
+    "solution": "If the access denied page is a simple page that does not need a controller, you can do it this way:\n\n<!-- This bean resolves specific types of exceptions to corresponding logical\n    - view names for error views. The default behavior of DispatcherServlet -\n    is to propagate all exceptions to the servlet container: this will happen\n    - here with all other types of exceptions. -->\n<bean\n    class=\"org.springframework.web.servlet.handler.SimpleMappingExceptionResolver\"\n    p:defaultErrorView=\"uncaughtException\">\n    <property name=\"exceptionMappings\">\n        <props>\n            <prop key=\".DataAccessException\">dataAccessFailure</prop>\n            <prop key=\".NoSuchRequestHandlingMethodException\">resourceNotFound</prop>\n            <prop key=\".TypeMismatchException\">resourceNotFound</prop>\n            <prop key=\".MissingServletRequestParameterException\">resourceNotFound</prop>\n            <prop key=\".AccessDeniedException\">accessDenied</prop>\n        </props>\n    </property>\n</bean>\n",
+    "chunk_id": "so-8742842-001"
+  },
+  {
+    "id": "so-8742842",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8742842/how-to-handle-accessdeniedexception-in-spring-security",
+    "title": "How to handle AccessDeniedException in Spring Security?",
+    "content": "i am using \nspring security 3\n, and i want whenever the \nAccessDeniedException\n is thrown, the user get's redirected to specific page: \n\norg.springframework.security.access.AccessDeniedException: Access is denied\n    at org.springframework.security.access.vote.AffirmativeBased.decide(AffirmativeBased.java:71)\n    at org.springframework.security.access.intercept.AbstractSecurityInterceptor.beforeInvocation(AbstractSecurityInterceptor.java:203)\n    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:106)\n    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:83)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:97)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:78)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter.doFilter(RememberMeAuthenticationFilter.java:112)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)\n    at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:54)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:380)",
+    "tags": [
+      "spring",
+      "spring-security"
+    ],
+    "solution": "If the access denied page is a simple page that does not need a controller, you can do it this way:\n\n<!-- This bean resolves specific types of exceptions to corresponding logical\n    - view names for error views. The default behavior of DispatcherServlet -\n    is to propagate all exceptions to the servlet container: this will happen\n    - here with all other types of exceptions. -->\n<bean\n    class=\"org.springframework.web.servlet.handler.SimpleMappingExceptionResolver\"\n    p:defaultErrorView=\"uncaughtException\">\n    <property name=\"exceptionMappings\">\n        <props>\n            <prop key=\".DataAccessException\">dataAccessFailure</prop>\n            <prop key=\".NoSuchRequestHandlingMethodException\">resourceNotFound</prop>\n            <prop key=\".TypeMismatchException\">resourceNotFound</prop>\n            <prop key=\".MissingServletRequestParameterException\">resourceNotFound</prop>\n            <prop key=\".AccessDeniedException\">accessDenied</prop>\n        </props>\n    </property>\n</bean>\n",
+    "chunk_id": "so-8742842-001"
+  },
+  {
+    "id": "so-43554489",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/43554489/spring-mvc-accessdeniedexception-500-error-received-instead-of-custom-401-error",
+    "title": "Spring MVC AccessDeniedException 500 error received instead of custom 401 error for @PreAuthorized unauth requests",
+    "content": "I'm writing a Java Spring MVC 4 REST app that'll sit between front-end devices (websites, mobile apps, etc) and a database. I have code below that will create a new session for each request (since REST is stateless), look at the Authorization header of the request, and will confirm the token is valid and request authenticated. \n\nWhen a user is requesting a secure method without a valid token, I'm looking to redirect unauthorized requests from a 500 Access Is Denied message to a 401 Unauthorized message.\n\nThis is what I have so far.\n\nAccessDeniedHandler:\n\npublic class Unauthorized401AccessDeniedHandler implements AccessDeniedHandler {\n    @Override\n    public void handle(HttpServletRequest request, HttpServletResponse response,\n                       AccessDeniedException accessDeniedException)\n            throws IOException, ServletException {\n\n        response.setStatus(401);\n    }\n}\n\nWebSecurityConfigurerAdapter:\n",
+    "tags": [
+      "java",
+      "spring",
+      "security",
+      "model-view-controller",
+      "authorization"
+    ],
+    "solution": "OK guys, wasn't able to get any help from the community BUT I did find a solution -- although it's not a direct solution.\n\n@ControllerAdvice\npublic class SecurityExceptionHandler extends ResponseEntityExceptionHandler {\n\n    @ExceptionHandler({AccessDeniedException.class})\n    public ResponseEntity<Object> handleAccessDeniedException(Exception ex, WebRequest request) {\n        if(ex.getMessage().toLowerCase().indexOf(\"access is denied\") > -1) {\n            return new ResponseEntity<Object>(\"Unauthorized Access\", new HttpHeaders(), HttpStatus.UNAUTHORIZED);\n        }\n\n        return new ResponseEntity<Object>(ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);\n    }\n}\n\nThis new file in my app will allow me to control what happens during an exception. Now I can just manually inspect the problem to see if it was \"access is denied\" and then redirect to 401 which DOES WORK. The problem above was that the code to redirect to the 401 wasn't ever being hit. This code DOES get executed.\n\nAgain, this isn't a direct solution as we're manipulating a different piece of Spring MVC and kind of hacking default behavior to get it to work.\n\nIf anyone has a more elegant solution, please do post.",
+    "chunk_id": "so-43554489-001"
+  },
+  {
+    "id": "so-36828036",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/36828036/is-there-a-way-for-a-java-app-to-gain-root-permissions",
+    "title": "Is there a way for a Java app to gain root permissions?",
+    "content": "When running \nFiles.walk(Paths.get(\"/var/\")).count()\n as an unprivileged user, the execution might throw an exception as there are folders inside \n/var/\n that need root permission to be traversed.\n\nI am \nnot\n looking for a way to execute a bash command as root (e.g. \nsudo find /var\n), using \nProcess\n, etc.\n\nI just want to make sure \nFiles.walk(Paths.get(\"/var/\")).count()\n does not throw an \nAccessDeniedException\n:\n",
+    "tags": [
+      "java",
+      "root",
+      "nio",
+      "file-permissions"
+    ],
+    "solution": "There is no easy way to change permissions. Java is not good at these tasks. There are only some tricks like check permissions on start and try to change permissions via su/sudo then restart application or using Java-gnome. Please read a bit more here: \nJava: Ask root privileges on Ubuntu",
+    "chunk_id": "so-36828036-001"
+  },
+  {
+    "id": "so-21171882",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/21171882/spring-security-ignoring-access-denied-handler-with-method-level-security",
+    "title": "Spring Security ignoring access-denied-handler with Method Level Security",
+    "content": "I'm using Spring 3.2.4 and am unable to get Spring Security to redirect to my \naccess-denied-handler\n when using Annotation based method level security.  I have found several different posts about this, but to date, there does not seem to be any solutions that I have found.\n\nMy security.xml file:\n\n<!-- need this here to be able to secure methods in components other than controllers (as scanned in applicationContext.xml) -->\n<global-method-security secured-annotations=\"enabled\" pre-post-annotations=\"enabled\" jsr250-annotations=\"enabled\" ></global-method-security>\n\n<!-- Annotation/JavaConfig examples http://stackoverflow.com/questions/7361513/spring-security-login-page -->\n<http use-expressions=\"true\" entry-point-ref=\"authenticationEntryPoint\">\n    <access-denied-handler ref=\"accessDeniedHandler\"/>\n\n    <intercept-url pattern=\"/secure/login\" access=\"permitAll\" />\n    <intercept-url pattern=\"/secure/logout\" access=\"permitAll\" />\n    <intercept-url pattern=\"/secure/denied\" access=\"permitAll\" />\n    <session-management session-fixation-protection=\"migrateSession\" session-authentication-error-url=\"/login.jsp?authFailed=true\"> \n        <concurrency-control max-sessions=\"10\" error-if-maximum-exceeded=\"true\" expired-url=\"/login.html\" session-registry-alias=\"sessionRegistry\"/>\n    </session-management>\n",
+    "tags": [
+      "spring-mvc",
+      "spring-security"
+    ],
+    "solution": "After several hours of searching around and tracing Spring code, I finally discovered what was happening.  I am listing this here in case it is of value to someone else.\n\nThe \naccess-denied-handler\n is used by the \nExceptionTranslationFilter\n in case of an \nAccessDeniedException\n.  However, the \norg.springframework.web.servlet.DispatcherServlet\n was first trying the handle the exception.  Specifically, I had a \norg.springframework.web.servlet.handler.SimpleMappingExceptionResolver\n defined with a \ndefaultErrorView\n.  Consequently, the \nSimpleMappingExceptionResolver\n was consuming the exception by redirecting to an appropriate view, and consequently, there was no exception left to bubble up to the \nExceptionTranslationFilter\n.\n",
+    "chunk_id": "so-21171882-001"
+  },
+  {
+    "id": "so-32446903",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32446903/what-is-the-best-way-to-handle-invalid-csrf-token-found-in-the-request-when-sess",
+    "title": "What is the best way to handle Invalid CSRF token found in the request when session times out in Spring security",
+    "content": "I\"m using Spring MVC/Security 3.X. The issue is that I'm getting 403 at the login page whenever the \nsession timeout\n, where underneath \"InvalidCsrfTokenException\" is being thrown by Spring framework :\n\n    threw exception [org.springframework.security.web.csrf.InvalidCsrfTokenException: Invalid CSRF Token '7b4aefe9-6685-4c70-adf1-0d633680523a' was found on the request parameter '_csrf' or header 'X-CSRF-TOKEN'.] with root cause\norg.springframework.security.web.csrf.InvalidCsrfTokenException: Invalid CSRF Token '7b4aefe9-6685-4c70-adf1-0d633680523a' was found on the request parameter '_csrf' or header 'X-CSRF-TOKEN'.\n    at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:100)\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:57)\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:87)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:50)\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:192)\n    at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:160)\n    at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:343)",
+    "tags": [
+      "java",
+      "spring-security",
+      "csrf",
+      "session-timeout",
+      "http-status-code-403"
+    ],
+    "solution": "The easiest way I found to \nhandle invalidate CSRF token when session times out at the login page\n is one of the followings:\n\nRedirect the request again to the login page again vi CustomAccessDeniedHandler:   \n\nstatic class CustomAccessDeniedHandler extends AccessDeniedHandlerImpl{\n\n    @Override\n    public void handle(HttpServletRequest request,\n            HttpServletResponse response,\n\n  AccessDeniedException accessDeniedException)\n    throws IOException, ServletException {\nif (accessDeniedException instanceof MissingCsrfTokenException\n        || accessDeniedException instanceof InvalidCsrfTokenException) {\n\n    if(request.getRequestURI().contains(\"login\")){\n        response.sendRedirect(request.getContextPath()+\"/login\");                                        \n    }",
+    "chunk_id": "so-32446903-001"
+  },
+  {
+    "id": "so-31996567",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31996567/how-to-deal-with-defaultroleprefix-role-in-spring-security-update-from-3-2-7",
+    "title": "How to deal with defaultRolePrefix=\"ROLE_\" in Spring Security update from 3.2.7 to 4.0.2.RELEASE",
+    "content": "My Spring Boot application works on \nSpring Security 3.2.7.RELEASE\n. \nNow, I'd like to update it to \n4.0.2.RELEASE\n.\n\nAfter hours of debug I have found that Spring Security 4.0.2.RELEASE uses \ndefaultRolePrefix=\"ROLE_\"\n\nin \n\norg.springframework.security.access.expression.SecurityExpressionRoot.hasAnyAuthorityName(String prefix, String... roles)\n method\n\nIn my application I use roles without this prefix and accordingly I get \nAccessDeniedException\n.\n\nHow to configure Spring Boot in order to use ",
+    "tags": [
+      "spring",
+      "spring-security",
+      "spring-boot"
+    ],
+    "solution": "I found the solution how to fix it. I need to change hasRole to hasAuthority, for example:\n\n@PreAuthorize(\"hasAuthority('PERMISSION_CREATE_NODE')\")",
+    "chunk_id": "so-31996567-001"
+  }
+]
