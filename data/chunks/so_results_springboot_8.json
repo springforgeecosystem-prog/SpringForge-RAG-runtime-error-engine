@@ -287,21 +287,5 @@
     ],
     "solution": "I faced with exact the same problem but with Google.\n\nHaving the following architecture of microservices\n\nGoogle Auth Server\n\n  Zuul Gateway (:8080)\n     /   \\\n    /     \\\n   /       \\\nOther      OAuth2Client (:5000)\n\nwhile running at local machine everything works fine, but in AWS Elastic Beanstalk I catch the very same exception. \n\nAfter debugging, I found out that in my case, when OAuth2Client is behind Zuul proxy (they implemented in separate microservices) I really get different redirect_uri values in the check inside \nOAuth2LoginAuthenticationProvider\n:\n\nif (!authorizationResponse.getRedirectUri().equals(authorizationRequest.getRedirectUri())) {\n    OAuth2Error oauth2Error = new OAuth2Error(INVALID_REDIRECT_URI_PARAMETER_ERROR_CODE);",
     "chunk_id": "so-49765687-001"
-  },
-  {
-    "id": "so-49765687",
-    "source": "StackOverflow",
-    "url": "https://stackoverflow.com/questions/49765687/redirect-uri-using-http-instead-of-https",
-    "title": "redirect_uri using http instead of https",
-    "content": "I'm using spring stack (Spring Boot 2.0.1.RELEASE) for creating a site that delegues user authentication/registration to Facebook via OAuth2. When I click the \"login with facebook\" button I get redirected to Facebook, but Spring Security OAuth2 is creating the redirect_uri parameter using http instead of https. The application uses https and I can't figure out where this \"http\" is coming from.\n\nSo, how can I make Spring create the redirect_uri parameter correctly?\n\nUPDATE\n\nSorry for the original post. It was late and I wanted to have the question posted before going sleep :-)\n\nWell, my application uses Spring Boot 2.0.1.RELEASE, which comes with Spring Security 2.0.1.RELEASE and Spring Security OAuth2 5.0.4.RELEASE. My application uses Facebook for registering and authenticating users. Currently I have a test environment running in AWS (Beanstalk) and using Amazon's SSL certificate.\n\nWhen I first wrote the post my issue was that the redirect_uri parameter sent by my application (by SS actually) to Facebook had a http prefix, instead of https. This was causing an error in Facebook, which only accepts https redirect urls.\n\nReading the docs I found the \nspring.security.oauth2.client.registration.facebook.redirect-uri-template\n property, which I set to \nhttps://[my domain]/login/oauth2/code/{registrationId}\n. Now Facebook processes my authentication requests and posts back to my application.\n\nHowever, with the previous parameter set, now the problem has changed. Now when the Facebook's callback hits my application at AWS I get the following exception (from the logs):\n",
-    "tags": [
-      "spring",
-      "facebook",
-      "spring-boot",
-      "spring-security",
-      "oauth-2.0"
-    ],
-    "solution": "I faced with exact the same problem but with Google.\n\nHaving the following architecture of microservices\n\nGoogle Auth Server\n\n  Zuul Gateway (:8080)\n     /   \\\n    /     \\\n   /       \\\nOther      OAuth2Client (:5000)\n\nwhile running at local machine everything works fine, but in AWS Elastic Beanstalk I catch the very same exception. \n\nAfter debugging, I found out that in my case, when OAuth2Client is behind Zuul proxy (they implemented in separate microservices) I really get different redirect_uri values in the check inside \nOAuth2LoginAuthenticationProvider\n:\n\nif (!authorizationResponse.getRedirectUri().equals(authorizationRequest.getRedirectUri())) {\n    OAuth2Error oauth2Error = new OAuth2Error(INVALID_REDIRECT_URI_PARAMETER_ERROR_CODE);",
-    "chunk_id": "so-49765687-001"
   }
 ]
