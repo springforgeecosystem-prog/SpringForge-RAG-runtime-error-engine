@@ -97,3 +97,6 @@ docs/_build/
 .ropeproject/
 .pytest_cache/
 .cache/
+
+# Config files
+config.py
