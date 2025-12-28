@@ -19,7 +19,7 @@ def vector_search(embedding, top_k=5):
     cur = conn.cursor()
 
     query = """
-        SELECT id, source, title, content,
+        SELECT id, source, title, content, url,
                1 - (embedding <=> %s::vector) AS score
         FROM knowledge_base
         ORDER BY embedding <-> %s::vector
@@ -39,7 +39,8 @@ def vector_search(embedding, top_k=5):
             "source": r[1],
             "title": r[2],
             "content": r[3],
-            "score": float(r[4])
+            "url": r[4],
+            "score": float(r[5]),
         })
 
     return results

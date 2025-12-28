@@ -1,4 +1,4 @@
-from embeddings import generate_embedding
+from rag.embeddings import generate_embedding
 from vectorstore import vector_search
 
 def retrieve_context(error_text: str, k: int = 5):
