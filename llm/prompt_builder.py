@@ -38,12 +38,10 @@ Produce the response in the EXACT format below.
 
 FORMAT (STRICT):
 
-SpringForge Runtime Analysis
-──────────────────────────
-❌ Error:
+Error:
 <one-line summary>
 
-🧠 Root Cause:
+Root Cause:
 <1–2 sentences>
 
 🛠 Suggested Fix:
@@ -51,11 +49,16 @@ SpringForge Runtime Analysis
 
 ```java
 // minimal, valid corrected code
-📚 References:
+References:
+"""
 
-<source 1>
+    # Add actual URLs from retrieved_docs
+    for doc in retrieved_docs:
+        url = doc.get('url', '#')
+        title = doc.get('title', 'Unknown')
+        prompt += f"\n- {title}: {url}"
 
-<source 2>
+    prompt += """
 
 Notes:
 
