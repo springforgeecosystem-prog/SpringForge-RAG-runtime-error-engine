@@ -1,6 +1,6 @@
 from rag.retriever import retrieve_context
-from rag.prompt_builder import build_prompt
-from rag.generator import generate_fix
+from llm.prompt_builder import build_prompt
+from llm.generator import generate_fix
 
 def run(error: str, code_context: list):
     retrieved_docs = retrieve_context(error)
@@ -13,7 +13,16 @@ def run(error: str, code_context: list):
 
     answer = generate_fix(prompt)
 
+    # Return ONLY metadata (NO content, NO embeddings)
+    clean_docs = [
+        {
+            "title": doc["title"],
+            "url": doc["url"]
+        }
+        for doc in retrieved_docs
+    ]
+
     return {
         "answer": answer,
-        "retrieved_docs": retrieved_docs
+        "retrieved_docs": clean_docs
     }
