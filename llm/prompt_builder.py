@@ -44,7 +44,7 @@ Error:
 Root Cause:
 <1–2 sentences>
 
-🛠 Suggested Fix:
+Suggested Fix:
 <short explanation>
 
 ```java

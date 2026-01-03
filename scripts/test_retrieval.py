@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from rag.embeddings import generate_embedding
-from vectorstore import vector_search
+from rag.vectorstore import vector_search
 
 query = input("Enter query: ")
 
