@@ -14,19 +14,23 @@ def get_connection():
     )
 
 def vector_search(embedding, top_k=5):
-
     conn = get_connection()
     cur = conn.cursor()
 
+    # Use %(name)s for named parameters - cleaner and no IndexError
     query = """
         SELECT id, source, title, content, url,
-               1 - (embedding <=> %s::vector) AS score
+               1 - (embedding <=> %(emb)s::vector) AS score
         FROM knowledge_base
-        ORDER BY embedding <-> %s::vector
-        LIMIT %s;
+        ORDER BY embedding <-> %(emb)s::vector
+        LIMIT %(limit)s;
     """
 
-    cur.execute(query, (embedding, embedding, top_k))
+    cur.execute(query, {
+        "emb": embedding, 
+        "limit": top_k
+    })
+    
     rows = cur.fetchall()
 
     cur.close()
