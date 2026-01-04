@@ -25,13 +25,11 @@ def retrieve_context(error_text: str, k: int = 5):
     2. Embed the summary.
     3. Retrieve top-k similar docs.
     """
-    # --- NEW STEP: SUMMARIZATION ---
-    # This prevents 'JBoss' or 'Vaadin' links from showing up 
-    # just because 'Spring' was mentioned in the stack trace.
+    
     search_query = summarize_error_for_search(error_text)
     print(f"DEBUG: Searching for: {search_query}")
 
-    # Embed the clean summary instead of the raw error
+    # Embed the clean summary
     error_embedding = generate_embedding(search_query) 
 
     return vector_search(
