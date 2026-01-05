@@ -13,7 +13,6 @@ def run(error: str, code_context: list):
 
     answer = generate_fix(prompt)
 
-    # Return ONLY metadata (NO content, NO embeddings)
     clean_docs = [
         {
             "title": doc["title"],
