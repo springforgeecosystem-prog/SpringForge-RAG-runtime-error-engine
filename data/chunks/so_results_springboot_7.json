@@ -1,0 +1,516 @@
+[
+  {
+    "id": "so-31169720",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31169720/disable-security-for-unit-tests-with-spring-boot",
+    "title": "Disable security for unit tests with spring boot",
+    "content": "I'm trying to create a simple spring boot web project with security.  I can launch the application fine and the security is working fine.  However, I have some components that I want to test without security (or test at all -- I cant get the test working at all).\n\nI get an exception indicating that it can't find an ObjectPostProcessor and thus can't bring up the container.  \n\nCaused by: org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type [org.springframework.security.config.annotation.ObjectPostProcessor] found for dependency\n\n14:01:50.937 [main] ERROR o.s.boot.SpringApplication - Application startup failed\norg.springframework.beans.factory.BeanCreationException: Error creating bean with name 'fmpdfApplication.ApplicationSecurity': Injection of autowired dependencies failed; nested exception is org.springframework.beans.factory.BeanCreationException: Could not autowire method: public void org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter.setObjectPostProcessor(org.springframework.security.config.annotation.ObjectPostProcessor); nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type [org.springframework.security.config.annotation.ObjectPostProcessor] found for dependency: expected at least 1 bean which qualifies as autowire candidate for this dependency. Dependency annotations: {}\n    at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues(AutowiredAnnotationBeanPostProcessor.java:334) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1210) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:537) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:476) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:303) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:299) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:194) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:755) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:757) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:480) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]\n    at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:686) ~[spring-boot-1.2.4.RELEASE.jar:1.2.4.RELEASE]",
+    "tags": [
+      "spring-boot",
+      "spring-test"
+    ],
+    "solution": "FmpdfApplication\n is likely annotated with \n@EnableAutoConfiguration\n (or with \n@SpringBootApplication\n which is meta-annotated with \n@EnableAutoConfiguration\n), and this will lead to Spring Security being picked up and configured via auto-configuration.\n\nIf you want to see what's being auto-configured, launch your web app and access the \nautoconfig\n endpoint (e.g., \nhttp://localhost:8080/autoconfig\n). Then search for 'Security' to see which 'AutoConfiguration' classes are being detected.\n\nYou can then disable auto-configuration of security by excluding those classes like this:\n\n@EnableAutoConfiguration(exclude = { SecurityAutoConfiguration.class, ManagementSecurityAutoConfiguration.class })\n\nOf course, you won't want to exclude them for production deployments. Thus you'll need to have a separate ",
+    "chunk_id": "so-31169720-001"
+  },
+  {
+    "id": "so-51991992",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/51991992/getting-ambiguous-exceptionhandler-method-mapped-for-methodargumentnotvalidexce",
+    "title": "Getting Ambiguous @ExceptionHandler method mapped for MethodArgumentNotValidException while startup of spring boot application",
+    "content": "I have written custom exception handler class for one of my spring controllers to validate if email attribute from request param is in the proper format. So created a new class which extends \nResponseEntityExceptionHandler\n class and wrote a method with \n@ExceptionHandler\n.\n\nBut during spring boot application startup, I am getting below exception which is stopping to run my project. Could someone help me to resolve this?\n\nException during server startup:\n\norg.springframework.beans.factory.BeanCreationException: Error creating bean with name 'handlerExceptionResolver' defined in class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$EnableWebMvcConfiguration.class]: Bean instantiation via factory method failed;\n\n  nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.web.servlet.HandlerExceptionResolver]: Factory method 'handlerExceptionResolver' threw exception;\n\n  nested exception is java.lang.IllegalStateException: Ambiguous @ExceptionHandler method mapped for [class org.springframework.web.bind.MethodArgumentNotValidException]: {public com.TestVO com.handler.exception.TestExceptionHandler.methodArgumentNotValidException(org.springframework.web.bind.MethodArgumentNotValidException), public final org.springframework.http.ResponseEntity org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler.handleException(java.lang.Exception,org.springframework.web.context.request.WebRequest) throws java.lang.Exception}\n\nCustom Class to handle \nMethodArgumentNotValidException\n:\n",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "exceptionhandler"
+    ],
+    "solution": "The ambiguity is because you have the same method -  @ExceptionHandler in both the classes - ResponseEntityExceptionHandler, MethodArgumentNotValidException. You need to write the overridden method as follows to get around this issue - \n\n   @Override\n   protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,\n                 HttpHeaders headers, HttpStatus status, WebRequest request) {\n          String errorMessage = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();\n          List<String> validationList = ex.getBindingResult().getFieldErrors().stream().map(fieldError->fieldError.getDefaultMessage()).collect(Collectors.toList());\n          LOGGER.info(\"Validation error list : \"+validationList);\n          ApiErrorVO apiErrorVO = new ApiErrorVO(errorMessage);\n          apiErrorVO.setErrorList(validationList);\n          return new ResponseEntity<>(apiErrorVO, status);\n   }",
+    "chunk_id": "so-51991992-001"
+  },
+  {
+    "id": "so-28032721",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28032721/producing-soap-webservices-with-spring-ws-with-soap-v1-2-instead-of-the-default",
+    "title": "Producing SOAP webservices with spring-ws with Soap v1.2 instead of the default v1.1",
+    "content": "I am currently working on Spring soap server project. I started off with the Getting Started guide from Spring here \nhttp://spring.io/guides/gs/producing-web-service/\n to build a basic SOAP service.\n\nThe default SOAP protocol is SOAP v1.1. Is there a way I could set the protocol to v1.2, possibly via annotations?\n\nI tried \n@BindingType(javax.xml.ws.soap.SOAPBinding.SOAP12HTTP_BINDING)\n annotation on the \n@Endpoint\n class but it doesnt seem to work.\n\nI also tried \n@Endpoint(value = SOAPBinding.SOAP12HTTP_BINDING)\n to set it, but this doesnt work either as seen in the logs on startup\n\nINFO --- [nio-8080-exec-1] o.s.ws.soap.saaj.SaajSoapMessageFactory  :\n Creating SAAJ 1.3 MessageFactory with SOAP 1.1 Protocol\n\nOfcourse, if I post a SOAP request to the server, I get the following error",
+    "tags": [
+      "soap",
+      "spring-ws",
+      "soapserver"
+    ],
+    "solution": "You are mixing Spring-WS with annotations from JAX-WS (package \njavax.xml.ws\n). That won't work. To configure Spring-WS to use SOAP 1.2, add the following bean definition:\n\n@Bean\npublic SaajSoapMessageFactory messageFactory() {\n    SaajSoapMessageFactory messageFactory = new SaajSoapMessageFactory();\n    messageFactory.setSoapVersion(SoapVersion.SOAP_12);\n    return messageFactory;\n}",
+    "chunk_id": "so-28032721-001"
+  },
+  {
+    "id": "so-19246715",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/19246715/when-i-do-query-from-solr-it-occurred-a-common-exception-telling-me-that-undefi",
+    "title": "When I do query from solr, it occurred a common exception telling me that undefined field userId",
+    "content": "I am developing a web application.\n I use spring mvc framework , cassandra and solr.\n I use standalone solr, not solr cloud.\n I use solr as a fulltext retrieval tool.\n I am facing a strange problem, first here is the \nschema.xml\n.\n\n<schema name=\"KSP_core\" version=\"1.1\">\n  <types>\n    <fieldType name=\"uuid\" class=\"solr.UUIDField\" indexed=\"true\" />  \n    <fieldType name=\"date\" class=\"solr.TrieDateField\" precisionStep=\"0\" positionIncrementGap=\"0\"/>\n    <fieldType name=\"int\" class=\"solr.TrieIntField\" precisionStep=\"0\" positionIncrementGap=\"0\"/>\n    <fieldtype name=\"string\"  class=\"solr.StrField\" sortMissingLast=\"true\" omitNorms=\"true\"/>\n    <fieldType name=\"long\" class=\"solr.TrieLongField\" precisionStep=\"0\" positionIncrementGap=\"0\"/>\n    <fieldType name=\"double\" class=\"solr.TrieDoubleField\" precisionStep=\"0\" positionIncrementGap=\"0\"/>\n  <fieldType name=\"text_ik\" class=\"solr.TextField\"> \n    <analyzer type=\"index\" isMaxWordLength=\"true\" class=\"org.wltea.analyzer.lucene.IKAnalyzer\"/> \n    <analyzer type=\"query\" isMaxWordLength=\"true\" class=\"org.wltea.analyzer.lucene.IKAnalyzer\"/> \n    </fieldType>",
+    "tags": [
+      "java",
+      "solr"
+    ],
+    "solution": "As I see, you change baseUrl in your code. As you said in comments, you query multiple cores at the same page, and all of them use the same \nHttpSolrServer\n. So it seems to be a lack of synchronization in your solution, and that there could be two requests running at the same time, and one request quering the ‘core’ of another.\n\nOf course, you could synchronize your method. But I think, that in your case it is better not to twitch \nHttpSolrServer\n each time, but to set additional parameter to your query, that will be used as additional path to your \nbaseUrl\n. You will need to set \nbaseUrl\n for \nHttpSolrServer\n once at creation time:\n\nHttpSolrServer solrHttpServer = new HttpSolrServer(baseUrl);\n\nand instead of changing it for each query you will set parameter (diff for your code):\n\n String queryExpression = \"*:*\";\n String sortField = \"createTime\";",
+    "chunk_id": "so-19246715-001"
+  },
+  {
+    "id": "so-29504180",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29504180/slf4j-error-class-loader-have-different-class-objects-for-the-type",
+    "title": "SLF4J error: class loader have different class objects for the type",
+    "content": "trying to figure out why I'm getting the following error in tomcat logs:\n\nCaused by: java.lang.LinkageError: loader constraint violation: when resolving method \"org.slf4j.impl.StaticLoggerBinder.getLoggerFactory()Lorg/slf4j/ILoggerFactory;\" the class loader (instance of org/apache/catalina/loader/WebappClassLoader) of the current class, org/slf4j/LoggerFactory, and the class loader (instance of sun/misc/Launcher$AppClassLoader) for the method's defining class, org/slf4j/impl/StaticLoggerBinder, have different Class objects for the type org/slf4j/ILoggerFactory used in the signature\n\nIn my gradle files I'm using slf4j version 1.7.7, and in tomcat I have jul-to-slf4j-1.7.7.jar and slf4j-api-1.7.7.jar, so I'm pretty confused.\n\nHere is the stack trace - thanks for any help!\n\nTotal time: 2.982 secs\nUsing CATALINA_BASE:   /usr/local/Cellar/tomcat/8.0.18/libexec\nUsing CATALINA_HOME:   /usr/local/Cellar/tomcat/8.0.18/libexec\nUsing CATALINA_TMPDIR: /usr/local/Cellar/tomcat/8.0.18/libexec/temp\nUsing JRE_HOME:        /Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home\nUsing CLASSPATH:       /usr/local/Cellar/tomcat/8.0.18/libexec/bin/jul-to-slf4j-1.7.7.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/slf4j-api-1.7.7.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/logback-classic-1.1.2.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/logback-core-1.1.2.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/logback-config/:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/bootstrap.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/tomcat-juli.jar\n19:03:55.979 [main] INFO  org.apache.catalina.startup.VersionLoggerListener - Server version:        Apache Tomcat/8.0.18\n19:03:55.981 [main] INFO  org.apache.catalina.startup.VersionLoggerListener - Server built:          Jan 23 2015 11:56:07 UTC\n19:03:55.981 [main] INFO  org.apache.catalina.startup.VersionLoggerListener - Server number:         8.0.18.0\n19:03:55.982 [main] INFO  org.apache.catalina.startup.VersionLoggerListener - OS Name:               Mac OS X\n19:03:55.982 [main] INFO  org.apache.catalina.startup.VersionLoggerListener - OS Version:            10.10\n19:03:55.982 [main] INFO  org.apache.catalina.startup.VersionLoggerListener - Architecture:          x86_64",
+    "tags": [
+      "java",
+      "tomcat",
+      "slf4j"
+    ],
+    "solution": "The Tomcat log shows you have another slf4j-1.7.7.jar on the classpath:\n\nUsing CLASSPATH:       /usr/local/Cellar/tomcat/8.0.18/libexec/bin/jul-to-slf4j-1.7.7.jar:\n/usr/local/Cellar/tomcat/8.0.18/libexec/bin/slf4j-api-1.7.7.jar\n:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/logback-classic-1.1.2.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/logback-core-1.1.2.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/logback-config/:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/bootstrap.jar:/usr/local/Cellar/tomcat/8.0.18/libexec/bin/tomcat-juli.jar\n\nWhen Tomcat is been initialized, it initialize jul-to-slf4j and slf4j-api. These jars are been loading by the Classloader which loaded the Tomcat jars (sun/misc/Launcher$AppClassLoader).\n\nWhen your application tries to access the slf4j-api classes, it uses the WebApplication Classloader (org/apache/catalina/loader/WebappClassLoader), which by default search for classes definition on the app classpath before the system classpath. Note this can be changed: \nhttps://tomcat.apache.org/tomcat-8.0-doc/class-loader-howto.html\n\nIn Java, the class signature is composed of the class full qualified name and the classloader that loaded the class. If a class is loaded two times from two different classloaders (same hierarchy), there will be two different classes for the JVM. Trying to point a object reference of one class to a variable of the other will trhow a ClassCastException. Check this blog post (item 5) for more info on this: \nhttps://techblug.wordpress.com/2012/03/17/classloader-tips/\n\nSo, as far as I know, you can fix this by removing the slf4j-*.jar from the Tomcat classpath, or if you have more then one webapp using the same version of slf4j, you can remove the jars from the webapp, so it will use those loaded by Tomcat classloader.",
+    "chunk_id": "so-29504180-001"
+  },
+  {
+    "id": "so-45875230",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/45875230/org-apache-catalina-core-standardcontext-startinternal-one-or-more-listeners-fai",
+    "title": "org.apache.catalina.core.StandardContext.startInternal One or more listeners failed to start",
+    "content": "I work on a \nJava/Spring/ Apache Cxf\n web app and suddenly, I get the error while I made some apparently naive changes, \n\n25-Aug-2017 11:48:43.036 INFO [RMI TCP Connection(2)-127.0.0.1] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.\nlog4j:WARN No appenders could be found for logger (org.apache.cxf.common.logging.LogUtils).\nlog4j:WARN Please initialize the log4j system properly.\nlog4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.\n25-Aug-2017 11:48:43.540 SEVERE [RMI TCP Connection(2)-127.0.0.1] org.apache.catalina.core.StandardContext.startInternal One or more listeners failed to start. Full details will be found in the appropriate container log file\n25-Aug-2017 11:48:43.554 SEVERE [RMI TCP Connection(2)-127.0.0.1] org.apache.catalina.core.StandardContext.startInternal Context [] startup failed due to previous errors\n[2017-08-25 11:48:43,586] Artifact jaxrs-tutorials:war exploded: Error during artifact deployment. See server log for details.\n25-Aug-2017 11:48:49.258 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/Applications/Tomcat-8.5.16/webapps/manager]\n25-Aug-2017 11:48:49.310 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/Applications/Tomcat-8.5.16/webapps/manager] has finished in [51] ms\n\nI guess this is the main \ninfo\n of the error, \n\n25-Aug-2017 11:48:43.540 SEVERE [RMI TCP Connection(2)-127.0.0.1] org.apache.catalina.core.StandardContext.startInternal One or more listeners failed to start. Full details will be found in the appropriate container log file\n25-Aug-2017 11:48:43.554 SEVERE [RMI TCP Connection(2)-127.0.0.1] org.apache.catalina.core.StandardContext.startInternal Context [] startup failed due to previous errors",
+    "tags": [
+      "java",
+      "spring",
+      "rest",
+      "maven",
+      "cxf"
+    ],
+    "solution": "I would like to write a detailed answer on the issue and the steps I have followed to solve the problem. \n\nA. There was not enough logging info. I looked up the \nPOM\n and found this, \n\n<dependency>\n            <groupId>org.springframework</groupId>\n            <artifactId>spring-context</artifactId>\n            <version>${spring.version}</version>\n            <exclusions>\n                <!-- Exclude Commons Logging in favor of SLF4j -->\n                <exclusion>\n                    <groupId>commons-logging</groupId>\n                    <artifactId>commons-logging</artifactId>\n                </exclusion>\n            </exclusions>\n        </dependency>\n\nI have excluded the logging in the favour of ",
+    "chunk_id": "so-45875230-001"
+  },
+  {
+    "id": "so-33015844",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/33015844/spring-jars-in-tomcat-lib-folder",
+    "title": "Spring jars in tomcat lib folder",
+    "content": "I am completely confused over how the class loading happens in tomcat. So please bear with me if my question sounds stupid.\n\nWe deploy multiple spring webapps on single tomcat server. To reduce the memory footprint, we thought of having spring, hibernate and database driver jars in tomcat lib folder so that those are shared by all webapps. \n\nI started first by marking spring dependencies as \nprovided\n and copied those jars to tomcat lib. But on server startup I started getting multiple \nClassNotFoundErrors\n, like for \ncommons-logging\n, \ncommons-fileupload\n, \njackson\n, so I had to move these jars as well to tomcat lib.\n\nBut then this started feeling fishy. What if in future I add another spring dependency to my project, say spring-data-cassandra. Would I need to move it's dependent jars as well? This might be unending. Also I might get CNF errors at runtime.\n\nI tried to follow \nthis",
+    "tags": [
+      "java",
+      "spring",
+      "tomcat",
+      "classloader"
+    ],
+    "solution": "I will try to explain what I know.\n\nWhen you deploy a WAR on your tomcat, the class loading will happen this way :\n\nlook for the class to load in your WAR classLoader\n\nif not found move to parent (tomcat /lib folder)\n\nWhat happen in your case is that spring also have a lot of dependencies, if you package it in your war, its dependencies would have been packaged as well and everything would have worked fine. But since you defined spring as provided, all its dependencies are considered provided as well, and when you put it in /lib folder, spring is accessible, but its dependencies are not.\n\nWhat you need to do is put all spring dependencies and the dependencies of dependencies (etc.) in lib folder as well. Another solution is to define an intermediary WAR in your classloading hierarchy which will contains all your common libs.",
+    "chunk_id": "so-33015844-001"
+  },
+  {
+    "id": "so-24520842",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/24520842/intellij-13-tomcat-error-configuring-application-listener-of-class-org-springfra",
+    "title": "IntelliJ 13 Tomcat Error configuring application listener of class org.springframework.web.util.Log4jConfigListener",
+    "content": "I'm attempting to run a Java/Spring/Hibernate/Ivy application using IntelliJ 13 and its built in Tomcat deployment plugin. I'm using Tomcat 8.0.9, but I've also attempted this using Tomcat 6.0.39. I'm creating an artifact when I attempt to spin up Tomcat; a exploded war to be more specific. I'm using Ivy to resolve my dependencies and this is because it's a legacy app that doesn't use Maven. Stupid, I know. \n\nWhen attempting to run this application from inside of IntelliJ using any version of Tomcat I recieve the following messages in my 'Server' log: \n\nC:\\dev\\apache-tomcat-6.0.39\\apache-tomcat-6.0.39\\bin\\catalina.bat run\n[2014-07-01 05:33:09,056] Artifact Kiosk:war exploded: Server is not connected. Deploy is not available.\nUsing CATALINA_BASE:   \"C:\\Users\\{username}\\.IntelliJIdea13\\system\\tomcat\\Unnamed_Kiosk_4\"\nUsing CATALINA_HOME:   \"C:\\dev\\apache-tomcat-6.0.39\\apache-tomcat-6.0.39\"\nUsing CATALINA_TMPDIR: \"C:\\dev\\apache-tomcat-6.0.39\\apache-tomcat-6.0.39\\temp\"\nUsing JRE_HOME:        \"C:\\apps\\Java\\jdk1.7.0_51\"\nUsing CLASSPATH:       \"C:\\dev\\apache-tomcat-6.0.39\\apache-tomcat-6.0.39\\bin\\bootstrap.jar\"\nConnected to the target VM, address: '127.0.0.1:57131', transport: 'socket'\nJul 01, 2014 5:33:09 PM org.apache.catalina.core.AprLifecycleListener init\nINFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: C:\\apps\\Java\\jdk1.7.0_51\\bin;C:\\Windows\\Sun\\Java\\bin;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\apps\\Java\\jdk1.7.0_51\\bin;C:\\Apps\\TortoiseSVN\\bin;C:\\Program Files (x86)\\Intel\\OpenCL SDK\\2.0\\bin\\x86;C:\\Program Files (x86)\\Intel\\OpenCL SDK\\2.0\\bin\\x64;C:\\dev\\apache-tomcat-6.0.39\\apache-tomcat-6.0.39;C:\\dev\\apache-maven-3.2.1-bin\\apache-maven-3.2.1\\bin;C:\\dev\\SlikSvn\\bin;.;;.;;.\nJul 01, 2014 5:33:09 PM org.apache.coyote.http11.Http11Protocol init\nINFO: Initializing Coyote HTTP/1.1 on http-8080\nJul 01, 2014 5:33:09 PM org.apache.catalina.startup.Catalina load\nINFO: Initialization processed in 475 ms\nJul 01, 2014 5:33:09 PM org.apache.catalina.core.StandardService start\nINFO: Starting service Catalina",
+    "tags": [
+      "java",
+      "tomcat",
+      "intellij-idea",
+      "classpath",
+      "classnotfoundexception"
+    ],
+    "solution": "I had a similar problem, or at least the exception \n\n30-Aug-2014 20:31:12.044 SEVERE [RMI TCP Connection(2)-127.0.0.1] org.apache.catalina.core.StandardContext.listenerStart Error configuring application listener of class org.springframework.web.context.ContextLoaderListener\njava.lang.ClassNotFoundException: org.springframework.web.context.ContextLoaderListener\nat org.apache.catalina.loader.WebappClassLoader.loadClass(WebappClassLoader.java:1324)\nat org.apache.catalina.loader.WebappClassLoader.loadClass(WebappClassLoader.java:1177)\nat org.apache.catalina.core.DefaultInstanceManager.loadClass(DefaultInstanceManager.java:550)\nat org.apache.catalina.core.DefaultInstanceManager.loadClassMaybePrivileged(DefaultInstanceManager.java:531)\n\nThe issue was that the libs had not been added to the Artifacts.\n\nTo Fix, \nFile\n -> \nProject Structure\n\nthen click Fix on all the errors that have been found, then click ok.\n\nNext time I ran the projects I encountered no errors.",
+    "chunk_id": "so-24520842-001"
+  },
+  {
+    "id": "so-18361136",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/18361136/classnotfoundexception-org-springframework-cglib-transform-impl-memorysafeundec",
+    "title": "ClassNotFoundException: org.springframework.cglib.transform.impl.MemorySafeUndeclaredThrowableStrategy after rebuilding",
+    "content": "I have this strange error when trying to run my project on Tomcat. Until a few days ago, everything was ok, and I haven't changed any line of code since then. The only thing I did before everything began to fail was \"Update project...\" in Maven context menu.\n\nAug 21, 2013 4:39:48 PM org.apache.catalina.core.AprLifecycleListener init\nINFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: C:\\Program Files\\Java\\jdk1.7.0_13\\bin;C:\\WINDOWS\\Sun\\Java\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;.\nAug 21, 2013 4:39:48 PM org.apache.tomcat.util.digester.SetPropertiesRule begin\nWARNING: [SetPropertiesRule]{Server/Service/Engine/Host/Context} Setting property 'source' to 'org.eclipse.jst.jee.server:ACME' did not find a matching property.\nAug 21, 2013 4:39:48 PM org.apache.coyote.AbstractProtocol init\nINFO: Initializing ProtocolHandler [\"http-bio-8080\"]\nAug 21, 2013 4:39:48 PM org.apache.coyote.AbstractProtocol init\nINFO: Initializing ProtocolHandler [\"ajp-bio-8009\"]\nAug 21, 2013 4:39:48 PM org.apache.catalina.startup.Catalina load\nINFO: Initialization processed in 549 ms\nAug 21, 2013 4:39:48 PM org.apache.catalina.core.StandardService startInternal\nINFO: Starting service Catalina\nAug 21, 2013 4:39:48 PM org.apache.catalina.core.StandardEngine startInternal\nINFO: Starting Servlet Engine: Apache Tomcat/7.0.35\nAug 21, 2013 4:39:50 PM org.apache.catalina.core.ApplicationContext log\nINFO: No Spring WebApplicationInitializer types detected on classpath\nAug 21, 2013 4:39:50 PM org.apache.catalina.core.ApplicationContext log\nINFO: Initializing Spring root WebApplicationContext",
+    "tags": [
+      "java",
+      "spring",
+      "classnotfoundexception"
+    ],
+    "solution": "The following class that cannot be found:\n\norg/springframework/cglib/transform/impl/MemorySafeUndeclaredThrowableStrategy\n\nIt was added to spring-core \n3.2.4\n and is not yet present in spring-core \n3.2.3\n. \n\nMake sure you do not accedently include an old version of spring core in your project while using newer versions of other spring-* libraries.",
+    "chunk_id": "so-18361136-001"
+  },
+  {
+    "id": "so-28306031",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/28306031/apparent-spring-boot-race-condition-causing-duplicate-springsecurityfilterchain",
+    "title": "Apparent Spring Boot race condition causing duplicate springSecurityFilterChain registration",
+    "content": "I have a REST-full web service implemented with Spring Boot 1.2.0-RELEASE that occasionally throws the following exception on startup.\n\n03-Feb-2015 11:42:23.697 SEVERE [localhost-startStop-1] org.apache.catalina.core.ContainerBase.addChildInternal ContainerBase.addChild: start: \n org.apache.catalina.LifecycleException: Failed to start component [StandardEngine[Catalina].StandardHost[localhost].StandardContext[]]\n        at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:154)\n        at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:725)\n...\nCaused by: java.lang.IllegalStateException: Duplicate Filter registration for 'springSecurityFilterChain'. Check to ensure the Filter is only configured once.\n        at org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer.registerFilter(AbstractSecurityWebApplicationInitializer.java:215)\n        at org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer.insertSpringSecurityFilterChain(AbstractSecurityWebApplicationInitializer.java:147)\n...\n\nWhen I say \"occasionally\", I mean simply restarting the Tomcat server (version 8.0.17) will yield either this exception or will successfully load without issue.  \n\nThis is a Servlet 3.0 application built on Spring Boot, so we don't have a traditional web.xml file.  Instead, we initialize our servlet using Java.\n\npackage com.v.dw.webservice;\n\nimport org.springframework.boot.builder.SpringApplicationBuilder;\nimport org.springframework.boot.context.web.SpringBootServletInitializer;",
+    "tags": [
+      "java",
+      "spring",
+      "spring-security",
+      "spring-boot"
+    ],
+    "solution": "I think you must have a concrete subclass of \nAbstractSecurityWebApplicationInitializer\n in your application. Spring's Servlet 3.0 support will find this \nWebApplicationInitializer\n implementation and call it when Tomcat starts your app. This triggers an attempt to register Spring Security's filter. You also have your \nWebXml\n class that extends \nSpringBootServletInitializer\n. This too is a \nWebApplicationInitializer\n that will be getting called when Tomcat starts your app. Due to Spring Boot's auto-configuration support this also triggers an attempt to register Spring Security's filter.\n\nYour \nWebXml\n class does not declare an order (it doesn't implement Spring's \nOrdered\n interface and it isn't annotated with \n@Order\n). I would guess that the same is true of your \nAbstractSecurityWebApplicationInitializer",
+    "chunk_id": "so-28306031-001"
+  },
+  {
+    "id": "so-39015653",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/39015653/liquibase-dropfirst-with-postgis",
+    "title": "Liquibase dropFirst with postgis",
+    "content": "I'm trying to add postgis extension to my postgressql database through Liquibase, here's how I've done it :\n\n<sql>CREATE EXTENSION IF NOT EXISTS postgis;</sql>\n\nIt works fine, problem is when I'm developing I want my database to be reset every time I restart my web server, so I've set liquibase in spring like this\n\n@Bean(name = \"liquibase\")\n@DependsOn(\"dataSource\")\n@Profile(\"dev\")\npublic SpringLiquibase liquibaseDev() {\n    SpringLiquibase springLiquibase = new SpringLiquibase();\n    springLiquibase.setDataSource(this.dataSource());\n    springLiquibase.setChangeLog(\"classpath:liquibase.xml\");\n    springLiquibase.setDefaultSchema(this.environment.getProperty(\"jdbc.defaultSchema\"));\n    springLiquibase.setDropFirst(true);\n    return springLiquibase;\n}\n\nAnd so Liquibase tries to drop everything, including postgis views, at startup. Which lead to this err\n",
+    "tags": [
+      "spring",
+      "postgis",
+      "liquibase"
+    ],
+    "solution": "Solved this by adding a little bit of SQL that is executed before Liquibase starts :\n\n@Bean(name = \"liquibase\")\n@DependsOn(\"dataSource\")\n@Profile(\"dev\")\npublic SpringLiquibase liquibaseDev() {\n\n    ScriptUtils.executeSqlScript(this.dataSource().getConnection(), new ClassPathResource(\"delete-postgis.sql\"));\n\n    SpringLiquibase springLiquibase = new SpringLiquibase();\n    springLiquibase.setDataSource(this.dataSource());\n    springLiquibase.setChangeLog(\"classpath:liquibase.xml\");\n    springLiquibase.setDefaultSchema(this.environment.getProperty(\"jdbc.defaultSchema\"));\n    springLiquibase.setDropFirst(true);\n    return springLiquibase;\n}\n\nwith file src/main/resources/delete-postgis.sql being\n\nDROP EXTENSION IF EXISTS postgis;",
+    "chunk_id": "so-39015653-001"
+  },
+  {
+    "id": "so-39710076",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/39710076/how-to-configure-spring-boot-admin-client-when-authentication-is-enabled",
+    "title": "How to configure spring boot admin client when authentication is enabled?",
+    "content": "I'm trying to set up a sample application using \nspring boot admin\n (both server + client side) and have run into an issue with authentication.\n\nWhen spring security is enabled on the management/actuator endpoints on the client side the spring-boot-admin server does not seem able to communicate with the client -- logging in to the Admin interface via a Web browser results in a continuous loop of authentication windows popping up and prompting for  usernames/passwords. Hitting cancel will display an HTTP 401 error on the page.\n\nHere's a configuration that works on the client side:\n\nmanagement.security.enabled=false\n\nsecurity.basic.enabled=true\n\nsecurity.user.name=test\n\nsecurity.user.password=test\n\nspring.boot.admin.url=\nhttp://localhost:9081/admin\n\nspring.boot.admin.username=admin",
+    "tags": [
+      "spring",
+      "authentication",
+      "spring-boot",
+      "basic-authentication"
+    ],
+    "solution": "There is no security feature included since the various solutions look very different. But I've put up some examples: \nhttps://github.com/joshiste/spring-boot-admin-samples",
+    "chunk_id": "so-39710076-001"
+  },
+  {
+    "id": "so-32327522",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/32327522/spring-boot-yml-and-standalone-tomcat-8-server",
+    "title": "Spring Boot YML and StandAlone Tomcat 8 Server",
+    "content": "I have the following directory structure/config file:\n\nsrc/main/resource/config: \napplication.yml \napplication-dev.yml \napplication-sit.yml\n\nNote according to the \"\nBootiful Configuration\n\" \nhttps://spring.io/blog/2015/01/13/configuring-it-all-out-or-12-factor-app-style-configuration-with-spring\n:\n\nSpring Boot will read the\n  properties in src/main/resources/application.properties by default. If\n  a profile is active, it will also automatically reads in the\n  configuration files based on the profile name, like\n  src/main/resources/application-foo.properties where foo is the current\n  profile. If the Snake YML library is on the classpath, then it will\n  also automatically load YML files.",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "tomcat",
+      "spring-boot"
+    ],
+    "solution": "Credit: @M. Deinum\n\nThere are two options for passing spring profile args into Tomcat 8.\n\n1.\n Set it as environment variable\n\nTomcat allows you to set environment config in \nCATALINA_HOME/setenv.sh\n or \nCATALINA_BASE/setenv.sh\n that are called during the start process.\n\nsetenv.sh:\nexport SPRING_PROFILES_ACTIVE=dev\n\nYou might also want to create a \nsrc/main/resources/banner.txt\n with this line in it:\n",
+    "chunk_id": "so-32327522-001"
+  },
+  {
+    "id": "so-15544116",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/15544116/sslhandshakeexception-received-fatal-alert-handshake-failure-when-setting-ciph",
+    "title": "SSLHandshakeException: Received fatal alert: handshake_failure when setting ciphers on tomcat 7 server",
+    "content": "I have a Tomcat7 web-server which I tried to configure to accept secure connections by adding this connector to the \nserver.xml\n file:\n\n<Connector SSLEnabled=\"true\"\n           acceptCount=\"100\"\n           connectionTimeout=\"20000\"\n           executor=\"tomcatThreadPool\"\n           keyAlias=\"server\"\n           keystoreFile=\"c:\\opt\\engine\\conf\\tc.keystore\"\n           keystorePass=\"o39UI12z\"\n           maxKeepAliveRequests=\"15\"\n           port=\"8443\"\n           protocol=\"HTTP/1.1\"\n           redirectPort=\"8443\"\n           scheme=\"https\"\n           secure=\"true\"\n           sslProtocol=\"TLS\"/>\n\nI'm using a self-signed certificate generated using this command:",
+    "tags": [
+      "ssl",
+      "tomcat7",
+      "encryption",
+      "resttemplate",
+      "sslhandshakeexception"
+    ],
+    "solution": "Well, I got this issue solved. It appears that by creating a self-signed certificate, using keytool, \nwithout providing -keyalg parameter\n makes the key-pair algorithm default to DSA. None of my ciphers suite included DSA algorithm. In that case, although the client and the server had intersection between their cipher-suites, neither was suitable for the key algoritm.\n\nAdding \n-keyalg RSA\n when generating the keystore, solved the problem.",
+    "chunk_id": "so-15544116-001"
+  },
+  {
+    "id": "so-15688689",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/15688689/unsatisfieddependencyexception-in-spring-illegal-arguments-for-constructor-a",
+    "title": "UnsatisfiedDependencyException in Spring : Illegal arguments for constructor : argument type mismatch",
+    "content": "I'm trying to inject DepartmentDAO in DepartmentService. This appeared after i've added @Transactional annotations. So here is my DepartmentService:\n\n@Service\n@Transactional\npublic class DepartmentService extends AbstractCRUDService<DepartmentDTO> {\n\n    private DepartmentDAO departmentDAO;\n\n    public DepartmentService() {\n        super();\n        this.departmentDAO = null;\n    }\n\n    @Inject\n    public DepartmentService(DepartmentDAO departmentDAO) {\n        super();\n        this.departmentDAO = departmentDAO;\n    }\n\n    @Override   ",
+    "tags": [
+      "java",
+      "spring",
+      "jakarta-ee",
+      "dependency-injection"
+    ],
+    "solution": "@Transactional\n is implemented as a proxy, IMHO Spring does not resolve proxy type as \nDepartmentDAO\n. In this case you have 2 solutions: \n\nmake your DA implement an interface and inject it via this last\n\nEnable CGLib proxy in Spring configuration",
+    "chunk_id": "so-15688689-001"
+  },
+  {
+    "id": "so-15688689",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/15688689/unsatisfieddependencyexception-in-spring-illegal-arguments-for-constructor-a",
+    "title": "UnsatisfiedDependencyException in Spring : Illegal arguments for constructor : argument type mismatch",
+    "content": "I'm trying to inject DepartmentDAO in DepartmentService. This appeared after i've added @Transactional annotations. So here is my DepartmentService:\n\n@Service\n@Transactional\npublic class DepartmentService extends AbstractCRUDService<DepartmentDTO> {\n\n    private DepartmentDAO departmentDAO;\n\n    public DepartmentService() {\n        super();\n        this.departmentDAO = null;\n    }\n\n    @Inject\n    public DepartmentService(DepartmentDAO departmentDAO) {\n        super();\n        this.departmentDAO = departmentDAO;\n    }\n\n    @Override   ",
+    "tags": [
+      "java",
+      "spring",
+      "jakarta-ee",
+      "dependency-injection"
+    ],
+    "solution": "@Transactional\n is implemented as a proxy, IMHO Spring does not resolve proxy type as \nDepartmentDAO\n. In this case you have 2 solutions: \n\nmake your DA implement an interface and inject it via this last\n\nEnable CGLib proxy in Spring configuration",
+    "chunk_id": "so-15688689-001"
+  },
+  {
+    "id": "so-42318819",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/42318819/why-is-tomcat-8-5-reloading-context",
+    "title": "Why is Tomcat 8.5 reloading context",
+    "content": "It seems like since we upgraded tomcat to version 8+ we aways get a context reload on startup.  However it only seems to happen in our development environments (windows OS with eclipse and tomcat 8.5).  Our production environments (linux OS with tomcat 8.5) do not have this issue.  Ill post it below but I do not see any indication of why this is happenign from the tomcat logs.  I know this is normally behavior with something in the web apps directory is changed, but for the life of me i cannot figure out what is doing it.  There must be some way to track it down though.\n\nThis first chunk of log is it fully starting\n\nFeb 18, 2017 9:53:41 AM org.apache.tomcat.util.digester.SetPropertiesRule begin\n  WARNING: [SetPropertiesRule]{Server/Service/Engine/Host/Context} Setting property 'source' to 'org.eclipse.jst.jee.server:Stackoverflow-commproxy' did not find a matching property.\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: Server version:        Apache Tomcat/8.5.11\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: Server built:          Jan 10 2017 21:02:52 UTC\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: Server number:         8.5.11.0\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: OS Name:               Windows 10\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: OS Version:            10.0\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: Architecture:          amd64\n  Feb 18, 2017 9:53:41 AM org.apache.catalina.startup.VersionLoggerListener log\n  INFO: Java Home:             C:\\Program Files\\Java\\jdk1.8.0_91\\jre",
+    "tags": [
+      "java",
+      "tomcat8"
+    ],
+    "solution": "You may try the following settings:\n\nOpen your server configuration from Eclipse Servers View\n\nthen make sure that in this editors Server Options section \n\"Modules auto reload by default\"\n is unchecked\n\nalso make sure that in that editors Publishing section \n\"Never publish automatically\"\n is selected\n\nOpen context menu of your server in Eclipse Servers View\n\nselect \n\"Add and Remove...\"\n\nin the dialog make sure that \n\"If server is started, publish changes immediately\"\n is unchecked and Finish (you might also have to remove all webapps first and add them again in another step)",
+    "chunk_id": "so-42318819-001"
+  },
+  {
+    "id": "so-21130538",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/21130538/joda-time-and-hibernate-4",
+    "title": "Joda Time and hibernate 4",
+    "content": "I am using hibernate 4 with joda time and spring data jpa. Spring data provides annotations \n\n@CreadedOn\n@LastModifiedOn\n\ni am trying to use these two annotations.Below is a snapshot of my pojo\n\n@Entity\n@Table(name=\"restaurant\")\n@Audited\npublic class Restaurant {\n\n@Id\n@GeneratedValue(strategy = GenerationType.AUTO)\nprivate long id;\n\nprivate String restaurantName;\n\n@CreatedDate\n@Type(type = \"org.jadira.usertype.dateandtime.joda.PersistentDateTime\")",
+    "tags": [
+      "spring",
+      "hibernate",
+      "jpa",
+      "jodatime",
+      "spring-data"
+    ],
+    "solution": "You don't need to use @Type annotation. Just add following jpa property:\n\nentityManagerFactory.getJpaPropertyMap().put(\"jadira.usertype.autoRegisterUserTypes\", \"true\");\n\nAlso I think that you've missed jadira dependecy:\n\n<dependency>\n  <groupId>org.jadira.usertype</groupId>\n  <artifactId>usertype.core</artifactId>\n  <version>3.1.0.CR10</version>\n</dependency>",
+    "chunk_id": "so-21130538-001"
+  },
+  {
+    "id": "so-51316663",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/51316663/the-tomcat-connector-configured-to-listen-on-port-8080-failed-to-start",
+    "title": "The Tomcat connector configured to listen on port 8080 failed to start",
+    "content": "I just downloaded this project:\n\nhttps://github.com/oktadeveloper/okta-spring-boot-2-angular-5-example\n\nexplained on this tutorial:\n\nhttps://developer.okta.com/blog/2017/12/04/basic-crud-angular-and-spring-boot\n\nBut when I try to run the server with the recommended command:\n\n./mvnw spring-boot:run\n\nI get the following output:\n\nDavid@HP /cygdrive/d/wamp64/www/external/okta.example.com/server\n$ ./mvnw spring-boot:run\n/cygdrive/d/wamp64/www/external/okta.example.com/server\n[INFO] Scanning for projects...\n[INFO]\n[INFO] ----------------------< com.okta.developer:demo >-----------------------",
+    "tags": [
+      "java",
+      "sockets",
+      "tomcat",
+      "tcp"
+    ],
+    "solution": "It says \"BindException: Address already in use: bind\", you must already be running some application under port 8080. Try to terminate that server and start again, or use a different port for this application, like 8081. If you can't check which app is using port 8080 already, use the following command\n\nnetstat -anob \n\nYou can now check and kill the application through task manager, assuming you're on windows.",
+    "chunk_id": "so-51316663-001"
+  },
+  {
+    "id": "so-31385686",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/31385686/why-cant-eclipse-find-javax-servlet-servletcontextlistener",
+    "title": "Why can't Eclipse find javax.servlet.ServletContextListener?",
+    "content": "I know it is a question that was already asked many times, but I tried almost all the solutions I found and it still does not work.\n\nI'm working with:\n\nEclipse Kepler\n\nJava 7\n\nMaven\n\nTomcat 6.0.37\n\nI'm trying to start the serverbut it fails because of :\n\nINFO: Starting Servlet Engine: Apache Tomcat/6.0.37\nJul 13, 2015 3:30:54 PM org.apache.catalina.core.StandardContext listenerStart\nSEVERE: Error configuring application listener of class org.springframework.web.util.Log4jConfigListener\njava.lang.NoClassDefFoundError: javax/servlet/ServletContextListener\n    at java.lang.ClassLoader.defineClass1(Native Method)\n    at java.lang.ClassLoader.defineClass(Unknown Source)",
+    "tags": [
+      "java",
+      "eclipse",
+      "maven",
+      "tomcat6"
+    ],
+    "solution": "I am guessing you are getting this error because your trying to start tomcat server from Eclipse. So, the problem lies with how Eclipse configures the Classpath for a WebApp.\n\nIn Eclipse, go to the Project's \"properties\" window.\nSelect:\nJava Build Path > Libraries.\n\nSelect: \nServer Runtime> Apache Tomcat.\n\nThis will tell Eclipse that it should consider Tomcat's lib director jars are part of the classpath for Tomcat.",
+    "chunk_id": "so-31385686-001"
+  },
+  {
+    "id": "so-20859851",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/20859851/spring-boot-doesnt-work-on-jboss",
+    "title": "Spring Boot doesn't work on JBoss",
+    "content": "I'm staring with \nSpring Boot\n and I tried to create the example available in the website (\nhttp://projects.spring.io/spring-boot/#quick-start\n). Everything worked fine when I ran the example as a standalone application (.jar) and also as a web application (.war) in my Tomcat server.\n\nBut when I moved the same .war file that worked on Tomcat to a \nJBoss 7.1\n server it didn't work anymore. I'm getting this error:\n\nError calling onStartup for servlet container initializer: org.springframework.web.SpringServletContainerInitializer: java.lang.NoSuchMethodError: org.slf4j.bridge.SLF4JBridgeHandler.removeHandlersForRootLogger()V\n\nI have no idea why this is happening. I google'd the but couldn't find anything related to Spring Boot. Can anybody please help me? The full stack trace is below. Thanks in advance!\n\n13:43:10,009 WARN  [org.jboss.as.ee] (MSC service thread 1-3) JBAS011006: Not installing optional component org.springframework.http.server.ServletServerHttpAsyncRequestControl due to exception: org.jboss.as.server.deployment.DeploymentUnitProcessingException: JBAS011054: Could not find default constructor for class org.springframework.http.server.ServletServerHttpAsyncRequestControl\n    at org.jboss.as.ee.component.ComponentDescription$DefaultComponentConfigurator.configure(ComponentDescription.java:606)\n    at org.jboss.as.ee.component.deployers.EEModuleConfigurationProcessor.deploy(EEModuleConfigurationProcessor.java:81)\n    at org.jboss.as.server.deployment.DeploymentUnitPhaseService.start(DeploymentUnitPhaseService.java:113) [jboss-as-server-7.1.1.Final.jar:7.1.1.Final]\n    at org.jboss.msc.service.ServiceControllerImpl$StartTask.startService(ServiceControllerImpl.java:1811) [jboss-msc-1.0.2.GA.jar:1.0.2.GA]\n    at org.jboss.msc.service.ServiceControllerImpl$StartTask.run(ServiceControllerImpl.java:1746) [jboss-msc-1.0.2.GA.jar:1.0.2.GA]",
+    "tags": [
+      "java",
+      "jboss",
+      "spring-boot"
+    ],
+    "solution": "Well the symptom means that Jboss is using a different version of SL4J which does not have that method.\n\nYou can do two things:\n\nGo to Jboss lib folder -> Open the manifest file and check the version provider etc.\nThen go to findjar.com and search for the package name. This will tell you that you need this jar - \njul-to-slf4j-1.5.5.jar\n. Down load this jar and drop it in Jboss lib folder.\n\nIf you are using maven, then add the below dependency\n\n<dependencies>\n    ...\n    <dependency>\n        <groupId>org.slf4j</groupId>\n        <artifactId>jul-to-slf4j</artifactId>\n        <version>1.7.5</version>\n    </dependency>\n    ...\n</dependencies>",
+    "chunk_id": "so-20859851-001"
+  },
+  {
+    "id": "so-35442189",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/35442189/one-or-more-filters-failed-to-start-after-adding-filters-to-web-xml",
+    "title": "One or more Filters failed to start after adding filters to web.xml",
+    "content": "Sorry if this is something trivial, but I'm pretty new to this.\n\nHere's my pom dependencies:\n\nThis all works like this, but if I uncomment the \n<filter>\n part in web.xml I get the\n\nOne or more Filters failed to start.\n\nerror. I tried googling it, but without success. I'm using Tomcat 8. I have no idea what else to say about the problem, since I'm trying to figure it out my self. I was following the tutorial from \nthis\n link (with XML configurations). I tried different spring and spring security versions, but every time the war 'explodes' it gives out the error above (and the application is, of course, unreachable)\n\nWas something updated that I didn't know about.. or am I missing something else? I'll post the full error stack at the bottom.\n\n<properties>\n    <spring.version>4.2.4.RELEASE</spring.version>\n    <spring.security.version>4.0.3.RELEASE</spring.security.version>\n</properties>",
+    "tags": [
+      "java",
+      "xml",
+      "spring",
+      "maven",
+      "spring-mvc"
+    ],
+    "solution": "So, apparently, the problem was that \nspringSecurityFilterChain\n couldn't be called, so I just moved the content of \nspring-security.xml\n to \nspring-servlet.xml\n and it all works as intended now.\n\nI wanted to seperate them by putting \nspring-security.xml\n in the \ncontextConfigLocation\n in the \nweb.xml\n, but I couldn't add more than one (\nspring-servlet.xml\n), but looks like that's not going to work very well.\n\nA big thank you to @wero for the logging tip!",
+    "chunk_id": "so-35442189-001"
+  },
+  {
+    "id": "so-34175052",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34175052/acquisition-attempt-failed-during-the-initializing-c3p0-pool",
+    "title": "Acquisition attempt failed during the initializing c3p0 pool",
+    "content": "I am new to J2EE technologies and trying to create a basic web application with JSF, Spring and Hibernate. I also use PostgreSQL. During the server startup, I encounter this exception:\n\nWARNING: com.mchange.v2.resourcepool.BasicResourcePool$ScatteredAcquireTask@173b4cf -- Acquisition Attempt Failed!!! Clearing pending acquires. While trying to acquire a needed new resource, we failed to succeed more than the maximum number of allowed acquisition attempts (30). Last acquisition attempt exception: \njava.lang.NullPointerException\nat sun.jdbc.odbc.JdbcOdbcDriver.getProtocol(Unknown Source)\nat sun.jdbc.odbc.JdbcOdbcDriver.knownURL(Unknown Source)\nat sun.jdbc.odbc.JdbcOdbcDriver.acceptsURL(Unknown Source)\nat java.sql.DriverManager.getDriver(Unknown Source)\nat com.mchange.v2.c3p0.DriverManagerDataSource.driver(DriverManagerDataSource.java:240)\nat com.mchange.v2.c3p0.DriverManagerDataSource.getConnection(DriverManagerDataSource.java:131)\nat com.mchange.v2.c3p0.WrapperConnectionPoolDataSource.getPooledConnection(WrapperConnectionPoolDataSource.java:156)\nat com.mchange.v2.c3p0.WrapperConnectionPoolDataSource.getPooledConnection(WrapperConnectionPoolDataSource.java:145)\nat com.mchange.v2.c3p0.impl.C3P0PooledConnectionPool$1PooledConnectionResourcePoolManager.acquireResource(C3P0PooledConnectionPool.java:200)\nat com.mchange.v2.resourcepool.BasicResourcePool.doAcquire(BasicResourcePool.java:1086)\nat com.mchange.v2.resourcepool.BasicResourcePool.doAcquireAndDecrementPendingAcquiresWithinLockOnSuccess(BasicResourcePool.java:1073)\nat com.mchange.v2.resourcepool.BasicResourcePool.access$800(BasicResourcePool.java:44)\nat com.mchange.v2.resourcepool.BasicResourcePool$ScatteredAcquireTask.run(BasicResourcePool.java:1810)\nat com.mchange.v2.async.ThreadPoolAsynchronousRunner$PoolThread.run(ThreadPoolAsynchronousRunner.java:648)\n\nDec 09, 2015 11:13:21 AM com.mchange.v2.resourcepool.BasicResourcePool$ScatteredAcquireTask run",
+    "tags": [
+      "spring",
+      "hibernate",
+      "postgresql",
+      "c3p0"
+    ],
+    "solution": "The immediate cause of your problem is that you haven't actually provided any Connection information to the c3p0 DataSource you have hibernate build with these settings. \n\n<prop key=\"hibernate.connection.provider_class\">org.hibernate.connection.C3P0ConnectionProvider</prop>\n<prop key=\"hibernate.c3p0.acquire_increment\">1</prop>\n\nSee the \nSpring docs\n: The DataSource you have configured in Spring is distinct from the one hibernate's SessionFactory might build internally. You've provided enough configuration to cause hibernate to build a DataSource, but you haven't provided the \nhibernate.connection.*\n parameters necessary to properly configure it.\n\nThe easiest thing to do would be to get rid of the DataSource you've configured in Spring and finish configuring your c3p0 DataSource in hibernate. See \nhibernate docs\n for the various Connection parameters you should supply that currently are missing. You can also set \nc3p0 configuration parameters\n as \nhibernate.c3p0.fooBarBlah\n (where \nfooBarBlah\n should obviously be replaced by real parameter names). [Note that for parameters like ",
+    "chunk_id": "so-34175052-001"
+  },
+  {
+    "id": "so-68047352",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/68047352/how-to-use-vaadin-flow-server-push-with-spring-boot",
+    "title": "How to use Vaadin FLOW server-push with Spring Boot",
+    "content": "When I use the @Push annotation on a view I get the following exception (JDK 16, Vaadin 19.0.7, Spring boot 2.4.7):\n\norg.springframework.context.ApplicationContextException: Unable to start web server; nested exception is org.springframework.boot.web.server.WebServerException: Unable to start embedded Tomcat\n    at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:162) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:577) ~[spring-context-5.3.8.jar:5.3.8]\n    at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:144) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:771) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:763) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:438) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.boot.SpringApplication.run(SpringApplication.java:339) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.boot.SpringApplication.run(SpringApplication.java:1329) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at org.springframework.boot.SpringApplication.run(SpringApplication.java:1318) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\n    at net.cbsolution.chameleon.ChameleonApplication.main(ChameleonApplication.java:10) ~[classes/:na]\n    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]\n    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:78) ~[na:na]\n    at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]\n    at java.base/java.lang.reflect.Method.invoke(Method.java:567) ~[na:na]\n    at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:49) ~[spring-boot-devtools-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]\nCaused by: org.springframework.boot.web.server.WebServerException: Unable to start embedded Tomcat\n    at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize(TomcatWebServer.java:142) ~[spring-boot-2.4.7-20210610.075414-42.jar:2.4.7-SNAPSHOT]",
+    "tags": [
+      "vaadin",
+      "server-push"
+    ],
+    "solution": "You must add annotation for the \"whole\" application (which \n@Push\n\nis) to your central configuration place (which is the class implementing\n\nAppShellConfigurator\n).  As the error states:\n\nFound app shell configuration annotations in non `AppShellConfigurator` classes.\nPlease create a custom class implementing `AppShellConfigurator` and move the following annotations to it:\n  - @Push from net.cbsolution.chameleon.ui.views.AlertView\n\nRemove \n@Push\n from \nnet.cbsolution.chameleon.ui.views.AlertView\n (as\nit's already set on your \nMyAppShellConfigurator\n as seen in your code paste).",
+    "chunk_id": "so-68047352-001"
+  },
+  {
+    "id": "so-55879879",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/55879879/display-the-full-error-in-browser-in-ruby-on-rails",
+    "title": "Display the full error in browser in Ruby on Rails",
+    "content": "I have started to learn \nRails\n today. I am following an online tutorial. I am getting an error. In the tutorial whenever there is an error, the reason for the error is displayed in the browser. But I just get this message:\n\nWe're sorry, but something went wrong. If you are the application owner check the logs for more information.\n\nHow can I make \nRails\n to show display the actual \nerror\n like how \nDjango\n displays the error when \ndebug = True\n in \nsettings.py\n file?\n\ndevelopment.rb\n",
+    "tags": [
+      "ruby-on-rails",
+      "ruby"
+    ],
+    "solution": "After reviewing the \nfull application\n you \nposted\n, I was able to reproduce the problem.\n\nThis issue has been \nreported before\n, in other StackOverflow posts, but I'll repeat it here:\n\nYou need to update the \nweb-console\n gem to version \n3.0+\n; in particular due to \nthis bug fix\n for running the rails server in a VM/container behind a proxy.\n\nIn other words, you need to update \nthis line in your ",
+    "chunk_id": "so-55879879-001"
+  },
+  {
+    "id": "so-19345945",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/19345945/severe-context-example-startup-failed-due-to-previous-errors",
+    "title": "SEVERE: Context [/example] startup failed due to previous errors",
+    "content": "I'm new at Java EE + Spring + Hibernate + Maven combination. Trying to make a simple project with tomcat 6.0.\n\nOur project just fine, no problem with debugging. But when i'm trying to run the server, it gives me \"Error listenerStart\" all the time.\n\nI searched all around the web for 3 days but no solution about this error. Can anyone please help me about this situation?\n\nThanks for your help.\n\n-My Console Output-\n\n    13.Eki.2013 08:32:14 org.apache.catalina.core.AprLifecycleListener init\nINFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: C:\\Program Files\\Java\\jdk1.6.0_45\\bin;C:\\Windows\\Sun\\Java\\bin;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\Microsoft\\Web Platform Installer\\;C:\\Program Files (x86)\\Microsoft ASP.NET\\ASP.NET Web Pages\\v1.0\\;C:\\Program Files (x86)\\Windows Kits\\8.0\\Windows Performance Toolkit\\;C:\\Program Files\\Microsoft SQL Server\\110\\Tools\\Binn\\;c:\\Program Files (x86)\\Microsoft SQL Server\\100\\Tools\\Binn\\;c:\\Program Files\\Microsoft SQL Server\\100\\Tools\\Binn\\;c:\\Program Files\\Microsoft SQL Server\\100\\DTS\\Binn\\;c:\\Program Files (x86)\\Microsoft SQL Server\\90\\Tools\\binn\\;C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\bin\\;C:\\MinGW\\bin;C:\\Program Files (x86)\\Notepad++;C:\\J2ETutorial\\apache-maven-3.0.5\\bin;C:\\Program Files\\Apache Software Foundation\\Tomcat 6.0\\bin;C:\\Program Files (x86)\\SDCC\\bin;.\n13.Eki.2013 08:32:15 org.apache.coyote.http11.Http11Protocol init\nINFO: Initializing Coyote HTTP/1.1 on http-8081\n13.Eki.2013 08:32:15 org.apache.catalina.startup.Catalina load\nINFO: Initialization processed in 2219 ms\n13.Eki.2013 08:32:15 org.apache.catalina.core.StandardService start\nINFO: Starting service Catalina\n13.Eki.2013 08:32:15 org.apache.catalina.core.StandardEngine start\nINFO: Starting Servlet Engine: Apache Tomcat/6.0.37",
+    "tags": [
+      "java",
+      "xml",
+      "spring",
+      "hibernate",
+      "maven"
+    ],
+    "solution": "The error message refers to a previous error. The previous error is:\n\nclass path resource [datasource.properties] cannot be opened because it does not exist",
+    "chunk_id": "so-19345945-001"
+  },
+  {
+    "id": "so-29637051",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29637051/issue-upgrading-from-jackson-1-9-to-2-5-using-spring-3-1-2-providerbase-class",
+    "title": "Issue upgrading from Jackson 1.9 to 2.5 using Spring 3.1.2 - ProviderBase class not found",
+    "content": "I'm trying to upgrade a current project from Jackson 1.9 to 2.5.  Everything was going well until I tried to startup my WAS 7 server and receive this error:\n\norg.springframework.beans.factory.CannotLoadBeanClassException: Error\n  loading class\n  [com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider] for bean\n  with name 'jaxbProvider' defined in ServletContext resource\n  [/WEB-INF/spring/applicationContext-configuration.xml]: problem with\n  class file or dependent class; nested exception is\n  java.lang.NoClassDefFoundError:\n  com.fasterxml.jackson.jaxrs.base.ProviderBase\n\nThis appears to be in relation to trying to register the Jackson Provider in my web.xml below:\n\n<!-- Jackson Provider -->\n<bean id=\"jaxbProvider\" class=\"com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider\" >\n    <property name=\"mapper\" ref=\"jacksonObjectMapper\"/>\n</bean>\n\n<bean id=\"jacksonObjectMapper\" class=\"com.fasterxml.jackson.databind.ObjectMapper\" >\n    <property name=\"annotationIntrospector\" ref=\"jacksonAnnotationIntrospector\"></property>",
+    "tags": [
+      "json",
+      "spring",
+      "dependencies",
+      "jackson",
+      "jax-rs"
+    ],
+    "solution": "If you used Maven, adding \njackson-jaxrs-json-provider\n as a dependency, you will see all the following pulled in \n\n(I had an image from another post with v2.2.3- disregard the version)\n\nAs you can see, it \ndoes\n depend on a \njackson-jaxrs-base\n, which is where the \nProviderBase\n is located. \n\nYou can download it \nhere\n (just click the \n2.5.0\n, then the \nDownload Bundle",
+    "chunk_id": "so-29637051-001"
+  },
+  {
+    "id": "so-24158939",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/24158939/errors-with-web-services-in-apache-cxf",
+    "title": "Errors with web services in Apache CXF",
+    "content": "Now I am reading about Apache Axis2, Apache CXF, JAX WS and trying to make web service with Apache CXF. I am using Eclipse Kepler, JDK 7 and CXF-2.6.1. I am working on this tutorial \nhttp://www.javatips.net/blog/2013/11/create-jax-ws-web-service-using-eclipse\n.\n\nI must admit that I am newbie in Web services. I am getting this error and I don't understand well. Could anyone help me please? Print from my console:\n\nJun 11, 2014 10:47:36 AM org.apache.catalina.core.AprLifecycleListener init\nINFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: C:\\Program Files\\Java\\jdk1.7.0_55\\bin;C:\\Windows\\Sun\\Java\\bin;C:\\Windows\\system32;C:\\Windows;C:\\Program Files (x86)\\AMD APP\\bin\\x86_64;C:\\Program Files (x86)\\AMD APP\\bin\\x86;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\ATI Technologies\\ATI.ACE\\Core-Static;.\nJun 11, 2014 10:47:36 AM org.apache.tomcat.util.digester.SetPropertiesRule begin\nWARNING: [SetPropertiesRule]{Server/Service/Engine/Host/Context} Setting property 'source' to 'org.eclipse.jst.jee.server:JAXWSEclipse' did not find a matching property.\nJun 11, 2014 10:47:36 AM org.apache.coyote.AbstractProtocol init\nINFO: Initializing ProtocolHandler [\"http-bio-8081\"]\nJun 11, 2014 10:47:36 AM org.apache.coyote.AbstractProtocol init\nINFO: Initializing ProtocolHandler [\"ajp-bio-8099\"]\nJun 11, 2014 10:47:36 AM org.apache.catalina.startup.Catalina load\nINFO: Initialization processed in 589 ms\nJun 11, 2014 10:47:36 AM org.apache.catalina.core.StandardService startInternal\nINFO: Starting service Catalina\nJun 11, 2014 10:47:36 AM org.apache.catalina.core.StandardEngine startInternal\nINFO: Starting Servlet Engine: Apache Tomcat/7.0.54",
+    "tags": [
+      "java",
+      "eclipse",
+      "apache",
+      "web-services",
+      "soap"
+    ],
+    "solution": "The answer given by Dinal works for CXF 2.3 and older.  For additional info: \nhttp://cxf.apache.org/docs/embedding-cxf-inside-spring.html",
+    "chunk_id": "so-24158939-001"
+  },
+  {
+    "id": "so-41476011",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/41476011/intellij-idea-spring-java-io-filenotfoundexception-could-not-open-servletcont",
+    "title": "IntelliJ IDEA: Spring: java.io.FileNotFoundException: Could not open ServletContext resource [/WEB-INF/applicationContext.xml]",
+    "content": "I'm new to web application development and am currently trying to learn JSF.\n\nI set a Web Application Project in IntelliJ IDEA like this:\n\nAfter that I added Maven Framework support and so far everything works fine - I can run the \"Hello World\" application, that IntelliJ created without any problems on \nTomcat 9\n.\n\nNow I am trying to integrate \nspring\n.\nI added the dependencies into the \npom.xml\n file, which now looks like that: \n\npom.xml\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"",
+    "tags": [
+      "spring",
+      "maven",
+      "intellij-idea"
+    ],
+    "solution": "If you want to change the location (or naming convention) for your spring configuration file, you should add a contextConfigLocation to your \nDispatcherServlet\n definition, for example: \n\n<servlet>\n  <servlet-name>appServlet</servlet-name>\n  <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>\n  <init-param>\n    <param-name>contextConfigLocation</param-name>\n    <param-value>classpath:app-context.xml</param-value>\n  </init-param>\n  <load-on-startup>1</load-on-startup>\n</servlet>\n\nContextLoaderListener\n has its own context which is shared by all servlets and filters. By default, \n/WEB-INF/applicationContext.xml\n.\n\nIn this case, all you need to do is to declare the ",
+    "chunk_id": "so-41476011-001"
+  },
+  {
+    "id": "so-29634495",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29634495/parsing-xml-document-from-servletcontext-resource-web-inf-applicationcontext-x",
+    "title": "parsing XML document from ServletContext resource [/WEB-INF/applicationContext.xml];",
+    "content": "I am getting a few errors in the console which I will post below. I am using eclipse and cleaned the project, refreshed the target, cleaned the tomcat server so chasing or anything of that nature is not the issue.\n\nConsole Error:\n\nSEVERE: Context initialization failed\norg.springframework.beans.factory.BeanDefinitionStoreException: IOException parsing XML document from ServletContext resource [/WEB-INF/applicationContext.xml]; nested exception is java.io.FileNotFoundException: Could not open ServletContext resource [/WEB-INF/applicationContext.xml]\n    at org.springframework.beans.factory.xml.XmlBeanDefinitionReader.loadBeanDefinitions(XmlBeanDefinitionReader.java:344)\n    at org.springframework.beans.factory.xml.XmlBeanDefinitionReader.loadBeanDefinitions(XmlBeanDefinitionReader.java:304)\n    at org.springframework.beans.factory.support.AbstractBeanDefinitionReader.loadBeanDefinitions(AbstractBeanDefinitionReader.java:181)\n    at org.springframework.beans.factory.support.AbstractBeanDefinitionReader.loadBeanDefinitions(AbstractBeanDefinitionReader.java:217)\n    at org.springframework.beans.factory.support.AbstractBeanDefinitionReader.loadBeanDefinitions(AbstractBeanDefinitionReader.java:188)\n    at org.springframework.web.context.support.XmlWebApplicationContext.loadBeanDefinitions(XmlWebApplicationContext.java:125)\n    at org.springframework.web.context.support.XmlWebApplicationContext.loadBeanDefinitions(XmlWebApplicationContext.java:94)\n    at org.springframework.context.support.AbstractRefreshableApplicationContext.refreshBeanFactory(AbstractRefreshableApplicationContext.java:129)\n    at org.springframework.context.support.AbstractApplicationContext.obtainFreshBeanFactory(AbstractApplicationContext.java:537)\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:452)\n    at org.springframework.web.context.ContextLoader.configureAndRefreshWebApplicationContext(ContextLoader.java:403)\n    at org.springframework.web.context.ContextLoader.initWebApplicationContext(ContextLoader.java:306)\n    at org.springframework.web.context.ContextLoaderListener.contextInitialized(ContextLoaderListener.java:106)\n    at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4772)",
+    "tags": [
+      "java",
+      "spring",
+      "jsp"
+    ],
+    "solution": "if you want to just load the files using ContextLoaderListener, remove the dispatcher servlet and that should work fine or use the below method to load the final.\n\n<servlet>\n<servlet-name>offers</servlet-name>\n<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>\n<init-param>\n    <param-name>contextConfigLocation</param-name>\n    <param-value> classpath:com/learnspring/config/daoContext.xml\n        classpath:com/learnspring/config/offersService.xml</param-value>\n</init-param>\n<load-on-startup>1</load-on-startup>",
+    "chunk_id": "so-29634495-001"
+  },
+  {
+    "id": "so-8877419",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8877419/java-lang-classnotfoundexception-org-springframework-orm-hibernate-support-open",
+    "title": "java.lang.ClassNotFoundException: org.springframework.orm.hibernate.support.OpenSessionInViewFilter",
+    "content": "i am new to spring/hibernate and was trying out my first app. I got stuck at this error, at first there was something like a  'no session factory bound to thread' error. i resolved it by declaring an OpenSessionInView filter in my web.xml given below\n\n  http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd\"\n      id=\"WebApp_ID\" version=\"3.0\">\n      cricket_calendar\n\n<servlet>\n    <servlet-name>appServlet</servlet-name>\n    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>\n    <init-param>\n        <param-name>contextConfigLocation</param-name>\n        <param-value>WEB-INF/calendar-context.xml</param-value>\n    </init-param>\n    <load-on-startup>1</load-on-startup>\n</servlet>\n\n<servlet-mapping>\n    <servlet-name>appServlet</servlet-name>\n    <url-pattern>*.do</url-pattern>\n</servlet-mapping>",
+    "tags": [
+      "java",
+      "hibernate",
+      "spring",
+      "spring-mvc",
+      "open-session-in-view"
+    ],
+    "solution": "I do not know if it is a spring 3.1 change.\n\nBut you tryed to load \njava.lang.ClassNotFoundException: org.springframework.orm.hibernate.support.OpenSessionInViewFilter\n\nbut you have only:\n\njava.lang.ClassNotFoundException: org.springframework.orm.hibernate.support3.OpenSessionInViewFilter\n\njava.lang.ClassNotFoundExcepion: org.springframework.orm.hibernate.support4.OpenSessionInViewFilter\n\nThe difference is the \n3\n or \n4\n in the classname. -- Because you do not posted the complete stacktrace I can only make a guess.\n\nthere is still the old package name use in a configuration file, or\n\nyou used a lib the is written for spring 3.0, or mixed spring 3.1 and 3.0 jars",
+    "chunk_id": "so-8877419-001"
+  },
+  {
+    "id": "so-57974664",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/57974664/why-the-spring-boot-vaadin-app-can-not-run",
+    "title": "Why the spring boot vaadin app can not run?",
+    "content": "I just created a custom app via \nthis.\n\nI wanted to create a spring boot app with Vaadin. But when I ran as a spring boot project I got this error. What is the reason I'm getting this error in a an empty project? I don't think there's a problem with Maven. This is the first time I've tried your promise. \n\nThanks for the help.\n\nHere is the error log:\n\n                          _  _                      _             _   \n__   __  __ _   __ _   __| |(_) _ __           ___ | |__    __ _ | |_ \n\\ \\ / / / _` | / _` | / _` || || '_ \\  _____  / __|| '_ \\  / _` || __|\n \\ V / | (_| || (_| || (_| || || | | ||_____|| (__ | | | || (_| || |_ \n  \\_/   \\__,_| \\__,_| \\__,_||_||_| |_|        \\___||_| |_| \\__,_| \\__|\n\n2019-09-17 15:30:30.181  INFO 22568 --- [  restartedMain] com.vaad.chat.spring.Application         : Starting Application on meren-HP-Pavilion-15-Notebook-PC with PID 22568 (started by meren in /home/meren/Masaüstü/vaadin-chat)\n2019-09-17 15:30:30.184  INFO 22568 --- [  restartedMain] com.vaad.chat.spring.Application         : No active profile set, falling back to default profiles: default\n2019-09-17 15:30:30.231  INFO 22568 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable\n2019-09-17 15:30:30.231  INFO 22568 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'\n2019-09-17 15:30:31.158  INFO 22568 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)",
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "vaadin"
+    ],
+    "solution": "UPDATE\n\nmvn clean install\n in pom file will solve the problem and you don't have to delete this line. Anyway if you delete it, you won't use vaadin.\n\nOLD ANSWER\n\nI had same problem. I generated a project by the help of vaadin.com/start and I got this error log. However I don't see your pom file but I think it's similar to mine.\nIf it is true, try to remove this line from vaadin dependency: \n<version>14.0.4</version>\n\nHere is pom from \nvaadin.com/start\n:\n\n    <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n    <project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n        xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\n        <modelVersion>4.0.0</modelVersion>\n        <parent>",
+    "chunk_id": "so-57974664-001"
+  },
+  {
+    "id": "so-70554119",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/70554119/no-suitable-drivers-available-when-deploying-a-spring-6-war-to-tomcat-10",
+    "title": "No suitable drivers available when deploying a Spring 6 war to Tomcat 10",
+    "content": "I have not used this traditional way to deploy wars to a tomcat in the past years.\n\nIn these days, I tried to update myself to Spring 6/Jakarta EE 9/Java 17 and created a simple example to demo  a Spring WebMvc war application, when deploying to a Tomcat 10 via cargo maven plugin or manually , I got the famous \nno suitable drivers\n at the application startup stage when hibernate is initialized.\n\nBut it worked in unit tests.\n\nI've also tried to deploy to an external Tomcat server, firstly copy a postgres jar  to the \ntomcat/lib\n folder, and then copy the war package to the \ntomcat/webapps\n folder, and start it manually, but got the same errors.\n\nMy example project:  \nhttps://github.com/hantsy/spring6-sandbox/tree/master/jpa\n ,  based on the following tech stack:\n\nJakarta EE 9/Java 17\n",
+    "tags": [
+      "spring",
+      "postgresql",
+      "tomcat"
+    ],
+    "solution": "Short answer\n: in your \nDataSourceConfig\n class you don't call \nDriverManagerDataSource#setDriverClassName\n, hence the \nDriverManager\n does not know where to find a suitable driver for a \njdbc:postgresql:\n URI.\n\nLong answer\n: wait, do I really need to specify the driver's class name, aren't JDBC drivers autodetected? Yes, since Java 6 and JDBC 4, JDBC drivers are automatically detected through the \nServiceLoader\n mechanism.\n\nHowever this happens only \nonce\n during the first call to \nDriverManager.getDrivers()",
+    "chunk_id": "so-70554119-001"
+  },
+  {
+    "id": "so-16670604",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/16670604/tomcat-startup-issueweb-xml",
+    "title": "Tomcat startup issue(web.xml)",
+    "content": "I'm trying to run a spring mvc basic app with tomcat and getting http 404 error. I get the below start up error. This was working before and i have no clue what went wrong with we.xml\n\nMay 21, 2013 6:09:37 PM org.apache.tomcat.util.digester.SetPropertiesRule begin\nWARNING: [SetPropertiesRule]{Server/Service/Engine/Host/Context} Setting property       'source' to 'org.eclipse.jst.jee.server:testspring' did not find a matching property.\nMay 21, 2013 6:09:37 PM org.apache.coyote.http11.Http11Protocol init\nINFO: Initializing Coyote HTTP/1.1 on http-8080\nMay 21, 2013 6:09:37 PM org.apache.catalina.startup.Catalina load\nINFO: Initialization processed in 471 ms\nMay 21, 2013 6:09:37 PM org.apache.catalina.core.StandardService start\nINFO: Starting service Catalina\nMay 21, 2013 6:09:37 PM org.apache.catalina.core.StandardEngine start\nINFO: Starting Servlet Engine: Apache Tomcat/6.0.33\nMay 21, 2013 6:09:37 PM org.apache.tomcat.util.digester.Digester endElement\nSEVERE: End event threw exception\njava.lang.reflect.InvocationTargetException\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nat sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)\nat sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)\nat java.lang.reflect.Method.invoke(Unknown Source)\nat        org.apache.tomcat.util.IntrospectionUtils.callMethodN(IntrospectionUtils.java:959)",
+    "tags": [
+      "spring",
+      "tomcat"
+    ],
+    "solution": "See this in stackTrace \n\nCaused by: java.lang.IllegalArgumentException: Servlet mapping specifies an unknown   servlet name frontcontrol\n\nyou have servlet-mapping for frontControl .... but no corrosponding SERVLET tag...\n\nI think This should be correct mapping in your case.\n\n<servlet>\n<servlet-name>frontcontrol</servlet-name><!-- Notice this line changed-->\n<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>\n<load-on-startup>1</load-on-startup>\n</servlet>\n<servlet-mapping>\n<servlet-name>frontcontrol</servlet-name>\n<url-pattern>/</url-pattern>\n</servlet-mapping>",
+    "chunk_id": "so-16670604-001"
+  },
+  {
+    "id": "so-10755516",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/10755516/spring-tomcat-issue",
+    "title": "Spring Tomcat issue",
+    "content": "I've Spring 3.1.1.jar and Tomcat 6.0. When i try to run my simple one bean app (which just has a hello world stmt) i get the following exception.\n\n May 25, 2012 6:58:51 PM org.apache.catalina.core.AprLifecycleListener init\nINFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/java/jdk1.7.0/jre/lib/i386/server:/usr/java/jdk1.7.0/jre/lib/i386:/usr/java/jdk1.7.0/jre/../lib/i386:/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0/jre/lib/i386/client:/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0/jre/lib/i386::/usr/java/packages/lib/i386:/lib:/usr/lib\nMay 25, 2012 6:58:51 PM org.apache.tomcat.util.digester.SetPropertiesRule begin\nWARNING: [SetPropertiesRule]{Server/Service/Engine/Host/Context} Setting property 'source' to 'org.eclipse.jst.jee.server:CMWP' did not find a matching property.\nMay 25, 2012 6:58:51 PM org.apache.coyote.http11.Http11Protocol init\nINFO: Initializing Coyote HTTP/1.1 on http-8080\nMay 25, 2012 6:58:51 PM org.apache.catalina.startup.Catalina load\nINFO: Initialization processed in 886 ms\nMay 25, 2012 6:58:51 PM org.apache.catalina.core.StandardService start\nINFO: Starting service Catalina\nMay 25, 2012 6:58:51 PM org.apache.catalina.core.StandardEngine start\nINFO: Starting Servlet Engine: Apache Tomcat/6.0.32\nMay 25, 2012 6:58:52 PM org.apache.catalina.core.ApplicationContext log\nINFO: Initializing Spring root WebApplicationContext\nMay 25, 2012 6:58:52 PM org.springframework.web.context.ContextLoader initWebApplicationContext\nINFO: Root WebApplicationContext: initialization started\nMay 25, 2012 6:58:52 PM org.springframework.context.support.AbstractApplicationContext prepareRefresh\nINFO: Refreshing Root WebApplicationContext: startup date [Fri May 25 18:58:52 IST 2012]; root of context hierarchy",
+    "tags": [
+      "java",
+      "spring",
+      "tomcat"
+    ],
+    "solution": "The line which is root of the problem contain:\n\njavaxInjectProviderClass = cl.loadClass(\"javax.inject.Provider\");\n\nAnd it seems that \ncl\n (\nDefaultListableBeanFactory.class.getClassLoader()\n) is null, which means that DefaultListableBeanFactory was loaded by ApplicationClassLoader and not Tomcat's WebApp or Shared classloader.\n\nMaybe you've put spring-beans-3.1.1.RELEASE.jar into endorsed directory, or somewhere inside Java installation?",
+    "chunk_id": "so-10755516-001"
+  }
+]

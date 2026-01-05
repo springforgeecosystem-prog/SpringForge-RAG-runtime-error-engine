@@ -1,0 +1,262 @@
+[
+  {
+    "id": "so-22821695",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/22821695/how-to-fix-hibernate-lazyinitializationexception-failed-to-lazily-initialize-a",
+    "title": "How to fix Hibernate LazyInitializationException: failed to lazily initialize a collection of roles, could not initialize proxy - no Session",
+    "content": "In the custom AuthenticationProvider from my spring project, I am trying read the list of authorities of the logged user, but I am facing the following error:\n\norg.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.horariolivre.entity.Usuario.autorizacoes, could not initialize proxy - no Session\n    at org.hibernate.collection.internal.AbstractPersistentCollection.throwLazyInitializationException(AbstractPersistentCollection.java:566)\n    at org.hibernate.collection.internal.AbstractPersistentCollection.withTemporarySessionIfNeeded(AbstractPersistentCollection.java:186)\n    at org.hibernate.collection.internal.AbstractPersistentCollection.initialize(AbstractPersistentCollection.java:545)\n    at org.hibernate.collection.internal.AbstractPersistentCollection.read(AbstractPersistentCollection.java:124)\n    at org.hibernate.collection.internal.PersistentBag.iterator(PersistentBag.java:266)\n    at com.horariolivre.security.CustomAuthenticationProvider.authenticate(CustomAuthenticationProvider.java:45)\n    at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:156)\n    at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:177)\n    at org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.attemptAuthentication(UsernamePasswordAuthenticationFilter.java:94)\n    at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:211)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:57)\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)\n    at org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:87)",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-mvc",
+      "spring-security"
+    ],
+    "solution": "You need to either add \nfetch=FetchType.EAGER\n inside your ManyToMany annotations to automatically pull back child entities:\n\n@ManyToMany(fetch = FetchType.EAGER)\n\nA better option would be to implement a Spring \ntransactionManager\n by adding the following to your Spring configuration file:\n\n<bean id=\"transactionManager\"\n    class=\"org.springframework.orm.hibernate4.HibernateTransactionManager\">\n    <property name=\"sessionFactory\" ref=\"sessionFactory\" />\n</bean>\n\n<tx:annotation-driven />\n\nYou can then add an \n@Transactional\n annotation to your ",
+    "chunk_id": "so-22821695-001"
+  },
+  {
+    "id": "so-19813492",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/19813492/getting-lazyinitializationexception-on-junit-test-case",
+    "title": "Getting LazyInitializationException on JUnit Test Case",
+    "content": "Problem running JUnit Test inside a Spring MVC Application. Test 1 (insertTweet) seems to run fine, however on Test 2 I get an \"LazyInitializationException\" Exception (see full stactrace below).  I understand why it is thrown but not sure why the session is closing and how to reopen it at the begining of every test 2 (or keep the existing session open for the remaining tests to complete)?  I have pasted the entire StackTrace thrown along with Test Classes. \n\norg.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.project.user.User.tweets, could not initialize proxy - no Session\n    at org.hibernate.collection.internal.AbstractPersistentCollection.throwLazyInitializationException(AbstractPersistentCollection.java:566)\n    at org.hibernate.collection.internal.AbstractPersistentCollection.withTemporarySessionIfNeeded(AbstractPersistentCollection.java:186)\n    at org.hibernate.collection.internal.AbstractPersistentCollection.initialize(AbstractPersistentCollection.java:545)\n    at org.hibernate.collection.internal.AbstractPersistentCollection.write(AbstractPersistentCollection.java:370)\n    at org.hibernate.collection.internal.PersistentBag.add(PersistentBag.java:291)\n    at com.project.core.tweet.Tweet.<init>(Tweet.java:113)\n    at com.project.core.service.impl.FanoutServiceTester.insertTweet(FanoutServiceTester.java:69)\n    at com.project.core.service.impl.FanoutServiceTester.testInsertRetweet(FanoutServiceTester.java:62)\n    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n    at java.lang.reflect.Method.invoke(Method.java:601)\n    at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:44)\n    at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n    at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:41)\n    at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n    at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:28)",
+    "tags": [
+      "spring",
+      "hibernate",
+      "junit",
+      "jpa-2.0",
+      "spring-data"
+    ],
+    "solution": "I've run into this and the error is a bit misleading. The \nSession\n is not being closed.\n\nWhen you call \nuserService.findByUserId(1);\n it probably does a \nJoin\n to a \nTweets\n table and so you get this collection back:\n\ncom.project.user.User.tweets\n\nHibernate does not initialize this collection by default. To initialize it, you can call \nHibernate.initialize()\n for example, like this:\n\nHibernate.initialize(user.getTweets());\n",
+    "chunk_id": "so-19813492-001"
+  },
+  {
+    "id": "so-43879474",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/43879474/jpa-join-fetch-results-to-null-on-empty-many-side",
+    "title": "JPA: Join Fetch results to NULL on empty many side",
+    "content": "I have a one to many relationship between User and GameMap. One user can have many maps.\n\nUser class:\n\n// LAZY LOADED\n@OneToMany(cascade = CascadeType.ALL, mappedBy = \"creater\")\nprivate final List<GameMap> maps = new ArrayList<>();\n\nHowever, sometimes I need to eager load the maps. To avoid the \nLazyInitializationException\n after closing Session, I have two variants of retrieving Users.\n\nUser Repository:\n\npublic interface UserRepository extends JpaRepository<User, Long> {\n\n    Optional<User> findById( Long id );\n\n    @Query(\"SELECT u FROM User u JOIN FETCH u.maps WHERE u.id = (:id)\")\n    public User findByIdEagerFetch( @Param(\"id\") Long id );",
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "spring-data",
+      "lazy-loading"
+    ],
+    "solution": "A \nFETCH JOIN\n actually will resolve to an \ninner\n join in SQL.  This means that any records/entities in the \nUser\n table which have no maps will be \nremoved\n from the result set.  You need the \nLEFT\n keyword on your \nFETCH JOIN\n to get all the results, even those without a map.\n\n@Query(\"SELECT u FROM User u LEFT JOIN FETCH u.maps WHERE u.id = (:id)\")\npublic User findByIdEagerFetch( @Param(\"id\") Long id );",
+    "chunk_id": "so-43879474-001"
+  },
+  {
+    "id": "so-49894587",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/49894587/lazyinitializationexception-could-not-initialize-proxy-no-session",
+    "title": "LazyInitializationException: could not initialize proxy - no Session",
+    "content": "I use \nspring-data-jpa\n with \nspring-boot(v2.0.0.RELEASE)\n, I just wrote a CRUD demo on MySQL, but an exception occurs during runtime, source code as follows:  \n\nSource code\n\nUser.java\n\n@Entity\npublic class User implements Serializable {\n    private static final long serialVersionUID = 1L;\n\n    @Id\n    private Integer id;\n    private String username;\n    private String password;\n\n    ...getter&setter",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data",
+      "spring-data-jpa"
+    ],
+    "solution": "You can add \n@Transactional\n annotation to your test method to avoid this exception.\n\nMethod \ngetOne\n return the 'reference' (proxy) of the entity which properties can be lazy loaded. See it \ncode\n - it uses \ngetReference\n method of \nEntityManager\n. From it javadoc:\n\nGet an instance, whose state may be lazily fetched.\n\nIn Spring the implementation of \nEntityManager\n is \norg.hibernate.internal.SessionImpl",
+    "chunk_id": "so-49894587-001"
+  },
+  {
+    "id": "so-8977121",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/8977121/advantages-of-using-hibernate-callback",
+    "title": "Advantages of using Hibernate Callback?",
+    "content": "I am not able to understand advantages of using Hibernate Callback method, are there any advantages or specific use case where we should go for it. \n\npublic List findRecentRequests(final int offset, final int length)\n{\n    List list = getHibernateTemplate().executeFind(new HibernateCallback()\n    {\n        public Object doInHibernate(Session session) throws HibernateException\n        {\n            Query q = session.createQuery(FIND_RECENT_REQUESTS);\n            q.setFirstResult(offset);\n            q.setMaxResults(length);\n            return q.list();\n        }\n    });\n    return list;\n}\n\nAlso one more important question is that does HibernateCallback method close session everytime after query returns values? I have use case where am calling this function multiple times on every refresh of status page and so will it everytime open session and query database or will it store query results in memory and then everytime I make call to this function, results would be popped out from memory. \n\nI have read(",
+    "tags": [
+      "java",
+      "database",
+      "hibernate",
+      "spring"
+    ],
+    "solution": "To your point about why use \nHibernateCallback\n.  Short answer - it allows you to access the current transactionally bound session in order to do perform more complex hibernate functions.  Most of the time the simple methods on \nHibernateTemplate\n are sufficient, but sometimes you need to go down to the \nSession\n.\n\nThere's two parts to the puzzle.\n\nThe first is the transaction scope which is defined either by using \nPlatformTransactionManager\n / \nTransactionTemplate\n OR \n@Transactional\nannotations.  See the spring docs/google for more info.\n\nThe second is that when you are within a transaction \nHibernateTemplate",
+    "chunk_id": "so-8977121-001"
+  },
+  {
+    "id": "so-48037601",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/48037601/lazyinitializationexception-with-graphql-spring",
+    "title": "LazyInitializationException with graphql-spring",
+    "content": "I am currently in the middle of migrating my REST-Server to GraphQL (at least partly). Most of the work is done, but i stumbled upon this problem which i seem to be unable to solve: OneToMany relationships in a graphql query, with FetchType.LAZY.\n\nI am using:\n\nhttps://github.com/graphql-java/graphql-spring-boot\n\nand\n\nhttps://github.com/graphql-java/graphql-java-tools\n for the integration.\n\nHere is an example:\n\nEntities:\n\n@Entity\nclass Show {\n   private Long id;\n   private String name;\n",
+    "tags": [
+      "spring",
+      "hibernate",
+      "spring-boot",
+      "graphql",
+      "graphql-java"
+    ],
+    "solution": "I solved it and should have read the documentation of the graphql-java-tools library more carefully i suppose.\nBeside the \nGraphQLQueryResolver\n which resolves the basic queries i also needed a \nGraphQLResolver<T>\n for my \nShow\nclass, which looks like this:\n\n@Component\npublic class ShowResolver implements GraphQLResolver<Show> {\n    @Autowired\n    private CompetitionRepository competitionRepository;\n\n    public List<Competition> competitions(Show show) {\n        return ((List<Competition>)competitionRepository.findByShowId(show.getId()));\n    }\n}\n\nThis tells the library how to resolve complex objects inside my ",
+    "chunk_id": "so-48037601-001"
+  },
+  {
+    "id": "so-12428085",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/12428085/lazyinitializationexception-in-jpa-and-hibernate",
+    "title": "LazyInitializationException in JPA and Hibernate",
+    "content": "I know that this question has been ask numerous times here and across the internet and I have read through many of those answers but I still don't understand the proper way to solve this problem. I am experimenting with Spring MVC and JPA and every time I access a lazily loaded property I get a LazyInitializationException. \n\nHere is some of the code I am experimenting with:\n\n@Repository\npublic class MyDAO {\n    private static final Logger logger = LoggerFactory.getLogger(MyDAO.class);\n\n    @PersistenceContext\n    private EntityManager em;\n\n    @Transactional\n    public void logDOI() {\n        DOI myDOI = em.find(DOI.class, Long.valueOf(1));\n\n        // This line gives the expected output\n        logger.info(\"Fetched DOI: \" + myDOI.getDoiKey());\n\n        // This line throws the LazyInitalizationException\n        for(DOIMembership m : myDOI.getDoiMemberships()) {",
+    "tags": [
+      "spring",
+      "hibernate",
+      "jpa"
+    ],
+    "solution": "Thanks to Shailendra I started to look closely at the transaction and noticed that the transaction was never starting. With that information I did some investigation and found this: \nSpring @Transaction not starting transactions\n. I put \n<tx:annotation-driven/>\n in my servlet-context.xml file and suddenly the transaction for logDOI started up and everything worked correctly; I no longer got the LazyInitializationException. I am not at all clear as to why that worked. Any information on that would be appreciated.\n\nUpdate:\n\nI figured it out. A critical piece of my problem was in the servlet-context.xml file. This is what it looked like\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<beans:beans xmlns=\"http://www.springframework.org/schema/mvc\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:beans=\"http://www.springframework.org/schema/beans\"\n    xmlns:context=\"http://www.springframework.org/schema/context\"\n    xmlns:tx=\"http://www.springframework.org/schema/tx\"\n    xsi:schemaLocation=\"http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd\n        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd\n        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd\n        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd\">",
+    "chunk_id": "so-12428085-001"
+  },
+  {
+    "id": "so-39054193",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/39054193/lazyinitializationexception-in-hibernate-could-not-initialize-proxy-no-sessi",
+    "title": "LazyInitializationException in Hibernate : could not initialize proxy - no Session",
+    "content": "I call dao from my service as \n\n@Override\n@Transactional\npublic Product getProductById(int id) {\n    return productDao.getProductById(id);\n}\n\nand in the dao I am getting product as \n\n@Override\npublic Product getProductById(int id) {\n    Product p = sessionFactory.getCurrentSession().load(Product.class, id);\n    System.out.print(p);\n    return p;\n}\n\nThis runs fine but if I change my dao class to\n\n@Override",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate"
+    ],
+    "solution": "Here's a good \nreference\n to get you familiar with how .get() and .load() method works. \n\n@Override\npublic Product getProductById(int id) {\n    Product p = sessionFactory.getCurrentSession().load(Product.class, id);\n    return p;\n}\n\nsession.load()\n by default returns a proxy object without hitting a database. It basically returns \nNoObjectFoundError\n if there aren't any records on the table or else it will return a reference without populating the actual object or even hitting the database.\nYour above method returns a proxy and since it has to initialize the your object as well, the session remains open and object is populated.\n\n@Override\npublic Product getProductById(int id) {\n    return sessionFactory.getCurrentSession().load(Product.class, id);\n}",
+    "chunk_id": "so-39054193-001"
+  },
+  {
+    "id": "so-23877900",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/23877900/spring-opensessioninviewfilter-with-transactional-annotation",
+    "title": "Spring OpenSessionInViewFilter with @Transactional annotation",
+    "content": "This is regarding Spring \nOpenSessionInViewFilter\n using with  \n@Transactional\n annotation at service layer.\n\ni went through so many stack overflow  post on this but still confused about whether i should use \nOpenSessionInViewFilter\n or not to avoid \nLazyInitializationException\n\nIt would be great help if somebody help me find out answer to below queries.\n\nIs it bad practice to use \nOpenSessionInViewFilter\n in application\nhaving complex schema.\n\nusing this filter  can cause \nN+1",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-transactions"
+    ],
+    "solution": "OpenSessionInView\n is a servlet filter than just Open a hibernate session and store it in the \nSessionHolder\n for the thread that is serving the request. With this session opened, hibernate can read the Lazy initialized collections and objects when you use this in the rendering stage of the request. This session can be accessed when you invoke \nSessionFactory.getCurrentSession()\n.\n\nBut, OpenSessionInView just opens the session and it doesn't begin any transactions. With a session opened you can read objects from database but, if you want to do something in a transaction you need \n@Transactional\n annotations or other mechanism to demarcate the begin and the end of the transaction when you want.\n\nThen the answer of the questions:\n\nIs it bad practice to use OpenSessionInViewFilter in application having complex schema.\n\nThis is a good practice if you need avoid the LazyInitializationException and the overload is just open new Hibernate Session and close it at the end of the request for each request. \n\nUsing this filter can cause N+1 problem\n\nI use this filter in many projects and not cause any problem.",
+    "chunk_id": "so-23877900-001"
+  },
+  {
+    "id": "so-42925823",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/42925823/hibernate-lazyinitializationexception-failed-to-lazily-initialize-a-collection",
+    "title": "Hibernate: LazyInitializationException: failed to lazily initialize a collection of role. Could not initialize proxy - no Session",
+    "content": "I have next error: \nnested exception is org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.example.Model.entities, could not initialize proxy - no Session\n\nMy \nModel\n entity:\n\nclass Model {\n...\n    @OneToMany(fetch = FetchType.LAZY, mappedBy = \"model\", orphanRemoval = true)\n    @Cascade(CascadeType.ALL)\n    @Fetch(value = FetchMode.SUBSELECT)\n    public Set<Entity> getEntities() {\n        return entities;\n    }\n\n    public void addEntity(Entity entity) {\n        entity.setModel(this);\n        entities.add(entity);\n    }",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa",
+      "spring-transactions"
+    ],
+    "solution": "It seems that model is a detached entity.\n\nTry to merge and perform operations on a merge instance:\n\n@Override\npublic void process(Model model) {\n     ...\n    Model mergedModel = session.merge(model);\n\n    mergedModel.addEntity(createEntity());\n    ...\n}",
+    "chunk_id": "so-42925823-001"
+  },
+  {
+    "id": "so-42632648",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/42632648/lazyinitializationexception-trying-to-get-lazy-initialized-instance",
+    "title": "LazyInitializationException trying to get lazy initialized instance",
+    "content": "I see the following exception message in my IDE when I try to get lazy initialized entity (I can't find where it is stored in the proxy entity so I can't provide the whole stack trace for this exception):\n\nMethod threw 'org.hibernate.LazyInitializationException' exception. Cannot evaluate com.epam.spring.core.domain.UserAccount_$$_jvste6b_4.toString()\n\nHere is a stack trace I get right after I try to access a field of the lazy initialized entity I want to use:\n\norg.hibernate.LazyInitializationException: could not initialize proxy - no Session\n\n    at org.hibernate.proxy.AbstractLazyInitializer.initialize(AbstractLazyInitializer.java:165)\n\n    at org.hibernate.proxy.AbstractLazyInitializer.getImplementation(AbstractLazyInitializer.java:286)\n\n    at org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer.invoke(JavassistLazyInitializer.java:185)\n\n    at com.epam.spring.core.domain.UserAccount_$$_jvstfc9_4.getMoney(UserAccount_$$_jvstfc9_4.java)\n\n    at com.epam.spring.core.web.rest.controller.BookingController.refill(BookingController.java:128) \n\nI'm using Spring Data, configured JpaTransactionManager, database is MySql, ORM provider is Hibernate 4. Annotation @EnableTransactionManagement is on, @Transactional was put everywhere I could imagine but nothing works.\n",
+    "tags": [
+      "mysql",
+      "hibernate",
+      "spring-data",
+      "lazy-loading",
+      "spring-transactions"
+    ],
+    "solution": "Firstly, you should understand that the root of the problem is not a transaction. We have a transaction and a persistent context (session). With \n@Transactional\n annotation Spring creates a transaction and opens persistent context. After method is invoked a persistent context becomes closed.\n\nWhen you call a \nuser.getUserAccount()\n you have a proxy class that wraps \nUserAccount\n (if you don't load \nUserAccount\n with \nUser\n). So when a persistent context is closed, you have a \nLazyInitializationException\n during call of any method of \nUserAccount\n, for example \nuser.getUserAccount().toString()\n.\n",
+    "chunk_id": "so-42632648-001"
+  },
+  {
+    "id": "so-17278385",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/17278385/spring-async-generates-lazyinitializationexceptions",
+    "title": "Spring @Async generates LazyInitializationExceptions",
+    "content": "The Spring MVC application needs to execute an intensive computation job which takes several minutes. The client wants to run this job in asynchronous way. But after I enable the @Async annotation on the method (see code 1) and get the error (see code 2). My web.xml and web-appliaiton-context.xml are also presented below. I tried to find a workaround to fix this, but failed. Please help.\n\ncode 1:\n\n@Service\npublic class AsyncServiceImpl implements AsyncServiceInt{\n\n    protected int pertArrSize = 1000;\n    @Autowired\n    protected TblvDao tblvDao1 = null;\n\n    @Override\n    @Async\n    public void startSlowProcess(Integer scenarioId) throws SecurityException, IllegalArgumentException, IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {\n        batchUpdateSummaryPertSim(scenarioId);\n\n    }\n\n    public void batchUpdateSummaryPertSim(Integer scenarioId) throws SecurityException, IllegalArgumentException, IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException\n    {",
+    "tags": [
+      "spring",
+      "asynchronous",
+      "lazy-initialization"
+    ],
+    "solution": "The problem here is, that Spring's AOP proxies don't extend but rather wrap your service instance to intercept calls. This has the effect, that any call to \"this\" from within your service instance is directly invoked on that instance and cannot be intercepted by the wrapping proxy (the proxy is not even aware of any such call).\n(as explained in \nSpring @Transaction method call by the method within the same class, does not work?\n )\n\nA possible solution is to extract the transactional code from the service, and put it in a separate class. This way, the call to the transactional method can be intercepted, and a transaction is available.\n\nEg.\n\n@Service\npublic class AsyncServiceImpl implements AsyncServiceInt{\n\n@Autowired private SlowProcess slowProcess;\n\n@Override\n@Async\npublic void startSlowProcess(Integer scenarioId) {\n    slowProcess.execute(param);\n}\n",
+    "chunk_id": "so-17278385-001"
+  },
+  {
+    "id": "so-65058723",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/65058723/hibernateexception-in-hashcode-or-in-equals",
+    "title": "HibernateException in hashCode or in equals",
+    "content": "I am using spring and hibernate.\nWhen fetching without having implemented equals and hashCode, everyting works fine. When I add the two methods and execute the query a Lazyinitializationexception is thrown inside the hashcode.I am assuming that it is happening because hibernate is trying to fill the set of A and its calling hashCode under the hood before the collections are fetched, yet this is only my assumption and would much appreciate if someone gave me a clue.\n---------------- In repository ----------------\n\n@Query(value = \"select u from User u \" +\n            \"left join fetch u.companies c \" +\n            \"left join fetch c.garages g \" +\n            \"left join fetch g.parkingSpaces pk \" +\n            \"left join fetch u.roles r\")\n    Set<User> findAllUsers();\n\n---------------- in service ----------------\n\n@Transactional(readOnly = true)\n    public Set<User> findAllUsers() {\n        return userRepository.findAllUsers();\n    }\n\n---------------- in USER ----------------\n",
+    "tags": [
+      "spring-boot",
+      "hibernate",
+      "jpa",
+      "hashcode",
+      "lazy-initialization"
+    ],
+    "solution": "That's an interesting issue (bug) you ran into. Note that it's \nnot\n a \nLazyInitializationException\n:\n\norg.hibernate.HibernateException: collection was evicted\n\nIt happens when you load 2+ collections in depth due to \njoin fetch\n\nand\n you use \nHashSet\n/\nhashCode\n. Hibernate knows it had to fetch the inner collection of \nCompany#garages\n but at the moment when \nCompany#hashCode",
+    "chunk_id": "so-65058723-001"
+  },
+  {
+    "id": "so-631695",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/631695/why-am-i-getting-a-hibernate-lazyinitializationexception-in-this-spring-mvc-web",
+    "title": "Why am I getting a Hibernate LazyInitializationException in this Spring MVC web application when the data displays correctly?",
+    "content": "I am attempting to create a web application using Spring MVC, with Hibernate as its ORM layer. However, due to my inexperience with both frameworks I'm struggling.\n\nThe following code will properly display all the records I am looking for but still throw a stack trace into my logs. I'm having trouble finding thorough documentation concerning integrating Hibernate and SpringMVC (I've looked on springsource.org and read various articles on the interweb). Could anyone point out what I could be doing wrong here?\n\nPlease note that I have spent a few trying to track down answers on the internet for this, including looking at \nthis\n SO question. Which was unfortunately no help.\n\nI should also note that the ORM part of this application has been used and tested in a stand alone Java application without problems. So I believe the integration of Spring MVC and Hibernate is causing the issue.\n\nHere is the stack trace (truncated) with the famous lazy initialization issue;\n\n2009-03-10 12:14:50,353 [http-8084-6] ERROR org.hibernate.LazyInitializationException.<init>(LazyInitializationException.java:19) - could not initialize proxy - no Session\norg.hibernate.LazyInitializationException: could not initialize proxy - no Session\n    at org.hibernate.proxy.AbstractLazyInitializer.initialize(AbstractLazyInitializer.java:57)\n    at org.hibernate.proxy.AbstractLazyInitializer.getImplementation(AbstractLazyInitializer.java:111)\n    at org.hibernate.proxy.pojo.cglib.CGLIBLazyInitializer.invoke(CGLIBLazyInitializer.java:150)\n    at com.generic.orm.generated.SearchRule$$EnhancerByCGLIB$$92abaed6.toString(<generated>)\n    at java.lang.String.valueOf(String.java:2827)\n    at java.lang.StringBuffer.append(StringBuffer.java:219)",
+    "tags": [
+      "java",
+      "hibernate",
+      "spring",
+      "web-applications",
+      "netbeans"
+    ],
+    "solution": "I am just guessing but from the stack trace it seems that toString is being called on SearchRule. Does SearchRule have any child objects that may not have been loaded? If SearchRule.toString was trying to get the value for an uninitialised child object that could result in the LazyInitializationException.",
+    "chunk_id": "so-631695-001"
+  },
+  {
+    "id": "so-46877337",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/46877337/hibernate-is-not-throwing-lazyinitializationexception-in-spring-boot-project",
+    "title": "Hibernate is not throwing LazyInitializationException in Spring Boot Project",
+    "content": "I work on a Spring Boot project with Hibernate 5.0. Unfortunately Hibernate reads the lazy initialized objects without throwing \nLazyInitializationException\n even after the transaction is committed. How can I enable the \nLazyInitializationException\n outside of transactions?\n\n(The current behavior hides bugs in the code.)",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa"
+    ],
+    "solution": "Spring boot have a property \nspring.jpa.open-in-view\n with a default value of true. This will register a \nOpenEntityManagerInViewInterceptor\n that will keep the transaction alive for the entire request.\n\ntry adding this to your application.properties file:\n\nspring.jpa.open-in-view=false\n\nA discussion about it on GitHub\n\nSome documentation about Spring Boot properties\n\nHope it helped!",
+    "chunk_id": "so-46877337-001"
+  },
+  {
+    "id": "so-54736634",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/54736634/lazyinitializationexception-even-with-transactional",
+    "title": "LazyInitializationException even with @Transactional",
+    "content": "Having a hard time getting a simple OneToMany mapped by the ManyToOne Entity to work when I go to fetch a user's comments.  Other answers have suggested that you have to create the query yourself with the entityManager but that seems so horrible.  Whats the point of an ORM if you can't even do something simple like this without hardcoding inline sql?  Seems more likely that I'm doing something wrong.\n\nSeems like maybe it has something to do with the fact that I'm accessing the user.getComments() method from jsp using the model.  Not sure what the best way to do this is.\n\nSchema:\n\nCREATE TABLE users (\n    id INTEGER AUTO_INCREMENT PRIMARY KEY,\n    username VARCHAR(255) UNIQUE NOT NULL,\n    created_at TIMESTAMP DEFAULT NOW()\n);\n\nCREATE TABLE comments (\n    id INTEGER AUTO_INCREMENT PRIMARY KEY,\n    comment_text VARCHAR(255) NOT NULL,\n    photo_id INTEGER NOT NULL,\n    user_id INTEGER NOT NULL,\n    created_at TIMESTAMP DEFAULT NOW(),\n    FOREIGN KEY(user_id) REFERENCES users(id)\n);",
+    "tags": [
+      "java",
+      "sql",
+      "spring",
+      "kotlin",
+      "jpql"
+    ],
+    "solution": "I did two things wrong:\n\nFirst: I forgot to enable transaction management in my spring java config class\n\n@Configuration\n@EnableTransactionManagement\npublic class AppConfig {\n\n  @Bean\n  public LocalContainerEntityManagerFactoryBean factoryBean() {\n      LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();\n      factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);\n\n      return factory;\n  }\n\n  @Bean\n  public PlatformTransactionManager transactionManager(){\n     JpaTransactionManager transactionManager = new JpaTransactionManager();\n     transactionManager.setEntityManagerFactory(factoryBean().getObject() );",
+    "chunk_id": "so-54736634-001"
+  },
+  {
+    "id": "so-12800531",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/12800531/transactionalreadonly-true-leads-to-lazyinitializationexception",
+    "title": "@Transactional(readOnly = true) leads to LazyInitializationException",
+    "content": "I have a many-to-many relation with an additional column in the link table. I've configured it in a way that the owning side fetches children eager (so I don't get \nLazyInitializationException\n) and in the opposite direction it is lazy. This works.\n\nI now wanted to fine-tune the transactions (before there was just \n@Transactional\n on class level of DAO and Service classes. I set method \ngetById\n to \nreadOnly = true\n:\n\n@Transactional(readOnly  = true)\npublic Compound getById(Long id) {\n    return compoundDAO.getById(id);\n}\n\nAfter this change I get a \nLazyInitializationException\n in following snippet:",
+    "tags": [
+      "spring",
+      "hibernate",
+      "transactions"
+    ],
+    "solution": "This is just wow. I'm starting to understand why some people hate ORMs...Just feels like I'm constantly having to spend hours to solve a weird issue and the solution is a very specific set of annotations + some code to work around the limitations of said annotations.\n\nFirst to why this happens (why meaning with which annotations, but not in terms of making logical sense, which is the actual problem here as using common-sense is useless. Only trial and error helps). In the owning side, in @OneToMany I have orphanRemoval = true (which I have found out is required for consistency. one would think database constraints should handle that...just one of the many things that can drive you crazy.). It seems that if the transaction is not read-only, then this setting leads to some data being fetched even so its lazy, namely here:\n\n@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)\npublic Structure getStructure() {\n    return structure;\n}\n\nIn a read-only transaction, this fetching does not happen. I would guess because if you can't change anything you will also not have to remove orphans and hence any data that the logic behind this setting requires is not needed in a read-only tx.\n\nSo the obvious solution would be in above relation to change to FetchType.EAGER. Wrong! If you do that you will not be able to update the owning side (Compound) using session.merge. This will lead to a StackOverFlowError. \n\nThe real solution was actually already mentioned. Just leave the config as is but explicitly load the desired relations in the Service layer:\n\n@Transactional(readOnly = true)\n@Override    \npublic Compound getById(Long id) {\n\n    Compound  compound = compoundDAO.getById(id);",
+    "chunk_id": "so-12800531-001"
+  }
+]

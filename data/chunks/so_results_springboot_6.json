@@ -1,0 +1,273 @@
+[
+  {
+    "id": "so-6207788",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/6207788/how-to-map-a-mysql-charn-column-to-an-instance-variable-using-a-jpa-hibernate",
+    "title": "How to map a MySQL char(n) column to an instance variable using a JPA/Hibernate annotation?",
+    "content": "I encounter a JPA/Hibernate mapping problem on a column \"language\" in a MySQL table whose type is char(7). In my entity, the code generated for the field is:\n\n    private String language;\n\nthis causes the following exception at runtime:\n\n        ... 43 more\nCaused by: javax.persistence.PersistenceException: [PersistenceUnit: prosvetaPersistenceUnit] Unable to build EntityManagerFactory\n    at org.hibernate.ejb.Ejb3Configuration.buildEntityManagerFactory(Ejb3Configuration.java:911)\n    at org.hibernate.ejb.HibernatePersistence.createContainerEntityManagerFactory(HibernatePersistence.java:74)\n    at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:225)\n    at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:308)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1477)\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1417)\n    ... 58 more\nCaused by: org.hibernate.HibernateException: Wrong column type in joo16_dev.jos_categories for column language. Found: char, expected: varchar(255)\n    at org.hibernate.mapping.Table.validateColumns(Table.java:283)\n    at org.hibernate.cfg.Configuration.validateSchema(Configuration.java:1313)\n    at org.hibernate.tool.hbm2ddl.SchemaValidator.validate(SchemaValidator.java:139)\n    at org.hibernate.impl.SessionFactoryImpl.<init>(SessionFactoryImpl.java:378)",
+    "tags": [
+      "mysql",
+      "hibernate",
+      "jpa-2.0"
+    ],
+    "solution": "Try this:\n\n@Column(name=\"language\",columnDefinition=\"char(7)\")\n\nsee if that works.",
+    "chunk_id": "so-6207788-001"
+  },
+  {
+    "id": "so-17879265",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/17879265/org-h2-jdbc-jdbcsqlexception-schema-myapp-not-found-sql-statement",
+    "title": "org.h2.jdbc.JdbcSQLException: Schema \"MYAPP\" not found; SQL statement",
+    "content": "i am trying to use H2 database with sprint junit test as follows:\n\n1- SpringTestingConfig:\n\n@Configuration\n@ComponentScan(basePackages = \"com.myapp.data\", excludeFilters = { @Filter(Configuration.class) })\n@PropertySource(\"classpath:/test.properties\")\n@Profile(\"test\")\npublic class SpringTestingConfig {\n   @Bean\n   public DataSource dataSource() {\n      DriverManagerDataSource dataSource = new DriverManagerDataSource();\n      dataSource.setDriverClassName(\"org.h2.Driver\");\n      dataSource.setUrl(\"jdbc:h2:mem:test;MODE=Mysql;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS TEST\");\n      dataSource.setUsername(\"sa\");\n      dataSource.setPassword(\"\");\n      return dataSource;\n   }\n}\n",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "junit",
+      "h2"
+    ],
+    "solution": "At the end in your SQL you have\n\nfrom myapp.User user0_\n\nshouldn't it be\n\nfrom TEST.User user0_ ?\n\nto fix it Replace: \n\n@Value(\"${hibernate.default_schema:myapp}\")\nprivate String defaultSchema;\n\nwith\n\n@Value(\"${hibernate.default_schema}\")\nprivate String defaultSchema;\n\nand use:\n",
+    "chunk_id": "so-17879265-001"
+  },
+  {
+    "id": "so-64059595",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/64059595/java-lang-classcastexception-b-cannot-be-cast-to-ljava-lang-object-while-usi",
+    "title": "java.lang.ClassCastException: [B cannot be cast to [Ljava.lang.Object; while using JPA 2.2 query.getResultStream().findFirst()",
+    "content": "The code of my Spring Data repository method is as follows:\n\npublic Optional<byte[]> findShipmentLabelByClientIdAndAwb(String clientId, String awb) {\n\n    String queryString = \"select g.shipmentLabel as shipmentLabel from GenericShipment g where g.client.id = :clientId and g.shipmentId = :awb \" +\n        \" AND (g.processingStatus is null or g.processingStatus <> 'DELETED') AND g.shipmentLabel is not null\";\n\n    val query = entityManager.createQuery(queryString, byte[].class);\n\n    query.setParameter(\"clientId\", clientId);\n    query.setParameter(\"awb\", awb);\n\n    return query.getResultStream().findFirst();\n\n}\n\nAs you can see, I am attempting to fetch, as byte array, the \nshipmentLabel\n column, defined in my Postgres schema as \nbytea",
+    "tags": [
+      "java",
+      "spring-data-jpa",
+      "hibernate-5.x",
+      "jpa-2.2"
+    ],
+    "solution": "Try with \ngetResultList\n first, and see if it works:\n\npublic Optional<Byte[]> findShipmentLabelByClientIdAndAwb(\n        String clientId, String awb) {\n    return entityManager.createQuery(\"\"\"\n        select \n            g.shipmentLabel as shipmentLabel \n        from GenericShipment g \n        where \n            g.client.id = :clientId and \n            g.shipmentId = :awb and \n            (\n                g.processingStatus is null or \n                g.processingStatus <> 'DELETED'\n            ) and \n            g.shipmentLabel is not null\n        \"\"\")\n    .setParameter(\"clientId\", clientId)",
+    "chunk_id": "so-64059595-001"
+  },
+  {
+    "id": "so-51748720",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/51748720/springboot-2-transaction-propagation-nested-not-supported",
+    "title": "SpringBoot 2 transaction propagation NESTED not supported",
+    "content": "I have a SpringBoot 2 project and i'm using spring data jpa with hibernate with MySQL5.7\n\nI have problems with the following use case: i have a service method that calls another service's method. If second service's method generates a runtime exception, also the first method is marked as rollback and i cannot commit things anymore. I'd like to only rollback second method and still commit something in the first one. \n\nI tried to use propagation.NESTED but nested transaction are not allowed with hibernate (even if jpaTransactionManager supports them and MySQL supports savepoints).\n\nHow can i solve this problem? Can i configure nested in some way?\n\nPlease remember i need second method to see changes committed by first so i can't mark the second method as propagation.REQUIRES_NEW\n\nHere is come sample code to clarify my problem:\n\nFirstServiceImpl.java\n\n@Service\npublic class FirstServiceImpl implements FirstService\n\n@Autowired\nSecondService secondService;\n",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "solution": "I would suggest you break them up into two separate transactions.\n\nIn the first transaction do all of the work presently in \nfirstServiceMethod\n that you know you want to commit. (e.g. through saveAndFlush). Now as you exit this method the changes are committed, so they will be available to subsequent calls. \n\nThen have whatever called \nfirstServiceMethod\n call a new Transactional method \nsetFirstEntityStatus()\n that calls \nsecondServiceMethod\n and sets the status of the entity as appropriate.\n\nBasically, instead of attempting to NEST the transactions, split them into two fully separate transactions and use the ordering to ensure the result of the 1st is available to the 2nd.",
+    "chunk_id": "so-51748720-001"
+  },
+  {
+    "id": "so-45847325",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/45847325/entitylisteners-annotation-causes-typenotpresentexceptionproxy-error",
+    "title": "@EntityListeners Annotation Causes TypeNotPresentExceptionProxy Error",
+    "content": "I have a JPA entity that looks something like this.  Note the \n@EntityListeners\n annotation:\n\nimport javax.persistence.EntityListeners;\nimport org.springframework.data.jpa.domain.support.AuditingEntityListener;\n\n@XmlRootElement\n@MappedSuperclass\n@EntityListeners( { AuditingEntityListener.class } )\npublic class BaseEntity implements Serializable\n{\n    //body\n}\n\nI'm using Hibernate as the JPA provider.\n\nI use Spring's \nLocalContainerEntityManagerFactoryBean\n to create the JPA ",
+    "tags": [
+      "hibernate",
+      "jpa",
+      "spring-data",
+      "spring-data-jpa",
+      "hibernate-jpa"
+    ],
+    "solution": "I did some more testing.  I found that this annotation did \nnot\n produce an error:\n\n@EntityListeners( { } )\n\nSo the \nAuditingEntityListener\n appeared to be the culprit.\n\nMore web searching turned up \nthis issue in Spring\n.  It mentioned the \nspring-aspects\nproject as being necessary for the runtime code weaving of \nAuditingEntityListener\n, so I added this to my Gradle build file:\n\ncompile \"org.springframework:spring-aspects:4.3.10.RELEASE\"\n",
+    "chunk_id": "so-45847325-001"
+  },
+  {
+    "id": "so-20946044",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/20946044/spring-orm-3-2-require-different-jtaplatform-package-instead-of-hibernate-core",
+    "title": "spring-orm 3.2 require different JtaPlatform package, instead of hibernate-core 4.3",
+    "content": "I have dependency to spring-orm 3.2 and hibernate-core 4.3. \n\nMy spring hibernate config:\n\n    <bean id=\"sessionFactory\" class=\"org.springframework.orm.hibernate4.LocalSessionFactoryBean\">\n        <property name=\"dataSource\" ref=\"dataSource\"/>\n        <property name=\"packagesToScan\" value=\"my.domain.package\"/>\n        <property name=\"hibernateProperties\">\n            <props>\n                <prop key=\"hibernate.dialect\">org.hibernate.dialect.MySQL5InnoDBDialect</prop>                \n            </props>\n        </property>\n    </bean>\n\nIn runtime i have exception \n\nCaused by: java.lang.ClassNotFoundException:\n  org.hibernate.service.jta.platform.spi.JtaPlatform\n\nin SpringSessionContext class. In my libs i see JtaPlatform in another hibernate package:",
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "orm"
+    ],
+    "solution": "Try changing the version of \nhibernate-core\n artifact you are using. \nJtaPlatform\n had been moved to another package since \n4.3.0.Beta1\n. Try using \n4.2.8.Final\n, it contains \nJtaPlatform\n in appropriate package.",
+    "chunk_id": "so-20946044-001"
+  },
+  {
+    "id": "so-54407376",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/54407376/liquibase-not-executing-for-spring-boot-mysql-app",
+    "title": "Liquibase not executing for Spring Boot/MySQL app",
+    "content": "Spring Boot 1.5.8 and Java 8 here. I've followed all the Spring Boot & Liquibase guides and I can't seem to get Liquibase to work.\n\nHere is a link to a \nGitHub repo\n for reproducing the issue exactly, but here's the scoop:\n\nI have the following MySQL v8 database that gets created like so ahead of time (before the app runs):\n\nCREATE DATABASE IF NOT EXISTS troubleshooting_db CHARACTER SET utf8 COLLATE utf8_general_ci;\n\nI have the following \nsrc/main/resources/db/changelog\n files:\n\ndb.changelog-master.yaml:\n===\ndatabaseChangeLog:\n- include:\n  file: db/changelog/1-setup.sql\n",
+    "tags": [
+      "java",
+      "mysql",
+      "spring-boot",
+      "jpa",
+      "liquibase"
+    ],
+    "solution": "There are 2 different problems \nin the repo\n:\n\nWrong location of application.yml. Move it from root to\nsrc/main/resources \n\nNested property in TroubleshootingConfig.Machine\nhas null value, because of this bean \"authInfo\" is not created and context initialization fails. Here is the reference on how \nSpring Boot Configuration Binding\n works.",
+    "chunk_id": "so-54407376-001"
+  },
+  {
+    "id": "so-48214627",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/48214627/spring-boot-jpa-path-expected-for-join",
+    "title": "Spring Boot JPA: Path expected for join",
+    "content": "Please note:\n not a dupe of \nthis one\n...I'm getting the same exception but for a different reason!\n\nJPA/Hibernate here, being used by a Spring Boot app written in Groovy (Groovy shouldn't matter; just mentioning it for good measure). I have the 3 following entities:\n\n@Entity(name = 'accounts')\nclass Account {\n    @Id\n    @Column(name='account_id')\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    Long id\n\n    @Column(name='account_ref_id')\n    String refId\n\n    @Column(name = 'account_email')\n    @NotEmpty\n    String email",
+    "tags": [
+      "hibernate",
+      "jpa",
+      "spring-boot",
+      "spring-data"
+    ],
+    "solution": "also, don't change entity names, if you want to point to table with different name then entity use:\n\n@Entity\n@Table(name = \"security_tokens\")\nclass SecurityToken {\n}\n\ninstead of\n\n@Entity(name = 'security_tokens')\nclass SecurityToken {\n}\n\nthen query:\n\n@Query(\"FROM SecurityToken st where st.type.label = :type AND st.account.id = :accountId\")",
+    "chunk_id": "so-48214627-001"
+  },
+  {
+    "id": "so-11521119",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/11521119/enabling-mandatory-validation-while-fetching-data-from-database-using-spring-jpa",
+    "title": "Enabling Mandatory Validation while fetching Data from database using Spring JPA with Hibernate",
+    "content": "I am developing an application using Spring JPA 2.0 with Hibernate as a ORM provider. We have only read only access to database and will generate report. I would like do some validation while fetching data.\n\n@Column(name = \"LOGICAL_ID\", nullable = false)\n@NotNull\nprivate Long logicalId;\n\nI added Hibernate validator which implements JSR 303 specs. But while fetching it doesn't throw any runtime exception or ConstraintViolationException? Do i add something in the configuration or am i missing something? Please advice me.",
+    "tags": [
+      "spring",
+      "hibernate",
+      "jpa"
+    ],
+    "solution": "Like i've posted in \nImplementing cross-validation in java\n\nYou can use the following piece of code to validate an entity manually;\n\nValidatorFactory factory = Validation.byDefaultProvider().configure().traversableResolver(new CustomTraversableResolver() ).buildValidatorFactory();\nValidator validator = factory.getValidator();\nSet<ConstraintViolation<YourBaseClass>> constraintViolations = Validator.validate(myEntityToValidate);\n\nIf you would like this to be done for you automatically, it might be that the 'javax.persistence.validation.mode' property is set to none (\nhttp://docs.jboss.org/hibernate/entitymanager/3.6/reference/en/html/configuration.html\n).\n\nI prefer the manual validation though, since then you have control and details, of which constraints are not passing.",
+    "chunk_id": "so-11521119-001"
+  },
+  {
+    "id": "so-50931495",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/50931495/mapping-a-composite-foreign-key-to-a-composite-primary-key",
+    "title": "Mapping a composite foreign key to a composite primary key",
+    "content": "I'm having problems mapping composite keys in jpa / hibernate. The parent entity and the child entity both have composite primary keys.  \n\nI have been able to use @mapsId when the parent entity has a simple key and the child has a composite key.  \n\nIn the hibernate documentation they use @JoinCoumns in the mapping to demonstrate mapping two composite keys. But in their example its not clear where those column references are defined.  \n\nI have the following:\n\n@Embeddable\npublic class PriceRequestLegKey implements Serializable {\n   @Column(name = \"leg_request_id\")\n   private String requestId;\n   @Column(name = \"display_index\")\n   private int displayIndex;\n   ...\n}\n\n@Embeddable\npublic class AllocationKey implements Serializable {\n",
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa"
+    ],
+    "solution": "You should restore the \nmappedBy=\"leg\"\n to the \nPriceRequestLegModel\n\n@OneToMany\n annotation:\n\n@Entity(name = \"PriceRequestLeg\")\npublic class PriceRequestLegModel {\n\n   @EmbeddedId\n   private PriceRequestLegKey legKey;\n   @OneToMany(mappedBy=\"leg\", cascade = CascadeType.ALL)\n   private List<AllocationModel> allocations;\n   ...\n}\n\nThen you should change \nAllocationKey",
+    "chunk_id": "so-50931495-001"
+  },
+  {
+    "id": "so-76246769",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/76246769/error-org-hibernate-engine-jdbc-spi-sqlexceptionhelpe-org-springframework-dao",
+    "title": "ERROR org.hibernate.engine.jdbc.spi.SqlExceptionHelpe / org.springframework.dao.InvalidDataAccessResourceUsageException: JDBC exception executing SQL",
+    "content": "Below is the :\n\nJPA Query generated at runtime:  \nselect m1_0.Patient_Id,m1_0.PLN_ID from [DevDatabase.dbo].Users m1_0 where m1_0.Patient_Id=?\n\nENTITY class:\n\n@Entity \n@Getter \n@Setter \n@AllArgsConstructor \n@NoArgsConstructor \n@ToString \n@Table(name = \"Users\", schema = \"DevDatabase.dbo\") \npublic class MemberDetailsEntity \n{ \n    @Id \n    @NonNull \n    @Column(name = \"Patient_Id\") \n    private String PatientId;",
+    "tags": [
+      "hibernate",
+      "exception",
+      "jpa",
+      "entity",
+      "mssql-jdbc"
+    ],
+    "solution": "Perhaps you meant to write:\n\n@Table(name = \"Users\", catalog = \"DevDatabase\", schema = \"dbo\")",
+    "chunk_id": "so-76246769-001"
+  },
+  {
+    "id": "so-34482330",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34482330/nullpointerexception-after-updating-jsf-to-2-1-richfaces-to-4-3-7",
+    "title": "NullPointerException after updating JSF to 2.1, Richfaces to 4.3.7",
+    "content": "When updating\n\njsf from 1.2 to 2.1 \n\nrichfaces from 3.3.3 to 4.3.7.Final\n\nfollowing \nthis link\n\nI got stuck with some strange exception\n\njava.lang.NullPointerException\ncom.ocpsoft.pretty.faces.application.PrettyNavigationHandler.processFacesNavigation(PrettyNavigationHandler.java:58)\ncom.ocpsoft.pretty.faces.application.PrettyNavigationHandler.handleNavigation(PrettyNavigationHandler.java:44)\ncom.sun.faces.application.ActionListenerImpl.processAction(ActionListenerImpl.java:130)\njavax.faces.component.UICommand.broadcast(UICommand.java:315)\njavax.faces.component.UIViewRoot.broadcastEvents(UIViewRoot.java:794)\njavax.faces.component.UIViewRoot.processApplication(UIViewRoot.java:1259)\ncom.sun.faces.lifecycle.InvokeApplicationPhase.execute(InvokeApplicationPhase.java:81)\ncom.sun.faces.lifecycle.Phase.doPhase(Phase.java:101)",
+    "tags": [
+      "maven",
+      "jsf-2",
+      "richfaces",
+      "prettyfaces"
+    ],
+    "solution": "the problem was in the following dependency\n\ncom/ocpsoft/prettyfaces-jsf12/3.3.3/prettyfaces-jsf12-3.3.3.jar\n\nwhen I replaced it with \n\ncom/ocpsoft/prettyfaces-jsf2/3.3.3/prettyfaces-jsf2-3.3.3.jar\n\nfor the second version of JSF, the problem has gone",
+    "chunk_id": "so-34482330-001"
+  },
+  {
+    "id": "so-79060098",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/79060098/blaze-persistence-returning-duplicates-entityviews-spring-data-jpa-specificat",
+    "title": "Blaze Persistence returning duplicates - EntityViews, Spring Data JPA Specification and Pagination",
+    "content": "I'm using the Blaze Persistence API with Spring Data JPA's specification API. When querying the database via EntityViewSpecificationExecutor with a Pageable object, duplicates are returned. How can I eliminate these duplicates?\n\nIn the below \ndummy scenario\n, I am trying to let my users filter course names by language, as well as other fields that I have removed from this question for brevity. A course can have multiple names in another language. For example, a course can have two Spanish names and three Greek names.\n\nIn my application, I have two entities:\n\n@Data\n@Entity\n@Table(name = \"courses\")\npublic class Course implements Serializable {\n\n   @Id\n   @Column(name = \"course_id\")\n   private Long id;\n\n   @Column(name = \"course_name\")\n   private String courseName; \n",
+    "tags": [
+      "spring-data-jpa",
+      "criteria-api",
+      "blaze-persistence"
+    ],
+    "solution": "The problem is that your specification will alter the cardinality of the result list because you are joining a *-to-many association. You should rather make use of an exists subquery predicate to essentially semi-join the \naltNameList\n like this:\n\n    // The below is expected to find zero, one, or more Spanish course names\n    public static Specification<Course> filterForSpanishLanguage(){\n        return ((root, criteriaQuery, criteriaBuilder) -> {\n            Subquery<Integer> subquery = criteriaQuery.subquery(Integer.class);\n            subquery.select(cb.literal(1));\n            Root<Course> correlatedRoot = subquery.correlate(root);\n            Join<Course, AltName> altNames = correlatedRoot.join(\"altNameList\", JoinType.INNER);\n            subquery.where(criteriaBuilder.equal(altNames.get(AltName_.ALT_NAME_LANGUAGE), \"Spanish\"));\n            return criteriaBuilder.exists(subquery); \n        });\n    }",
+    "chunk_id": "so-79060098-001"
+  },
+  {
+    "id": "so-64308198",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/64308198/adding-to-a-list-which-is-an-element-in-a-java-spring-class",
+    "title": "Adding to a list which is an element in a Java Spring class",
+    "content": "I have an Account class for a job search application I am building which contains a Linked List of Education instances (just university name, gpa, etc). I would like to have an HTTP Post request to add an element to that list:\n\n@PostMapping(\"/education/{id}\")\n    void newAccount(@RequestBody Education newEducation, @PathVariable Long id) {\n        Account a = repository.findById(id).orElseThrow(() -> new AccountNotFoundException(id));\n        a.addEducation(newEducation);\n    }\n\nThis is the account class:\n\nimport java.util.LinkedList;\nimport java.util.Objects;\n\nimport javax.persistence.Entity;\nimport javax.persistence.GeneratedValue;\nimport javax.persistence.Id;\n\n@Entity\npublic class Account {\n    private @Id @GeneratedValue Long id;",
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc"
+    ],
+    "solution": "https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html\n\nThe problem is, as long as your list is dynamic, it can't be serialized, but it needs to be serialized to be able to transmit to the database. So you have to make sure that your list is serializable. This is achieved by \n\"The List.of and List.copyOf static factory methods provide a convenient way to create unmodifiable lists.\"\n So it means, before you send your object to the database, you've to make sure that your list objects are \nunmodifable/not dynamic\n.",
+    "chunk_id": "so-64308198-001"
+  },
+  {
+    "id": "so-62486846",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/62486846/spring-boot-hibernate-transaction-manager-not-rolling-back-transaction-even-on-r",
+    "title": "spring-boot hibernate transaction manager not rolling back transaction even on runtime exception",
+    "content": "I'm working on a spring-boot hibernate JPA personal project book-store. I'm facing a problem that the methods annotated with @Transactional annotation not rolling back transactions even with runtime exceptions. I'm using spring-boot version 1.5.1, hibernate version 5, java version 11 & DB is MySQL. I'm generating run time exception by inserting the book with the same title in books table. In BookServiceImpl's addBook method the store-entry should ideally rollback from the store table when adding the book to books table fails, but, it is currently not happening.\n\nBelow is bean config file code:\n\npackage com.freetests4u;\n\nimport org.hibernate.SessionFactory;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.jdbc.datasource.DataSourceTransactionManager;\nimport org.springframework.orm.hibernate5.HibernateTransactionManager;\nimport org.springframework.transaction.PlatformTransactionManager;\n\nimport com.fasterxml.jackson.databind.Module;\nimport com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;\nimport com.mysql.jdbc.jdbc2.optional.MysqlDataSource;\n\nimport javax.persistence.EntityManagerFactory;\nimport javax.sql.DataSource;",
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "jpa"
+    ],
+    "solution": "You shouldn't use \nSession session = sessionFactory.openSession();\n - this will create a brand new Session each time. Instead you simply want to inject the current Session and use that.\n\nBtw., I'm not sure whether your Configuration is necessary. Usually Spring Boot Autoconfiguration takes care of everything if you include the right starter (for Spring Boot 2 that's spring-boot-starter-data-jpa).\n\n@Component\npublic class BookDaoImpl implements BookDao {\n\n    @Autowired\n    private Session session; // Might want to use JPA EntityManager instead\n\n    @Transactional(rollbackFor = MyException.class) // propagation = Propagation.REQUIRED is default anyway\n    @Override\n    public boolean Book addBook(Book book) {\n        // No need to handle transaction manually\n        session.save(book);\n        return true; // Maybe return something more useful\n    }\n}",
+    "chunk_id": "so-62486846-001"
+  },
+  {
+    "id": "so-48460401",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/48460401/spring-throwing-persistentobjectexception-when-trying-to-insert-new-entity-with",
+    "title": "Spring throwing PersistentObjectException when trying to insert new entity with existing field",
+    "content": "Spring Boot/Hibernate/JPA/MySQL here. I have the following two JPA entities:\n\n@MappedSuperclass\npublic abstract class BaseEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String refId;\n}\n\n@MappedSuperclass\npublic abstract class BaseLookup extends BaseEntity {\n    @JsonIgnore\n    @NotNull\n    private String name;\n\n    @NotNull\n    private String label;\n",
+    "tags": [
+      "mysql",
+      "hibernate",
+      "jpa",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "solution": "First of all, remove \nCascadeType.PERSIST\n. You don't want to persist a pre-existing, detached entity. I'd also remove \nCascadeType.MERGE\n since you say \nDeviceSystem\n represents read-only data. Cascading operations is rarely a good idea with many-to-one associations (as a side note, the \n@OneToOne\n should really be a \n@ManyToOne\n).\n\nThe problem here is that Spring Data detects \nDevice\n to be a new entity and decides to call \nEntityManager.persist()\n rather than \nEntityManager.merge()\n. This means that the \nPERSIST",
+    "chunk_id": "so-48460401-001"
+  },
+  {
+    "id": "so-44233332",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/44233332/nosuchmethoderror-for-spring-repositoryresourcemappings",
+    "title": "NoSuchMethodError for Spring RepositoryResourceMappings",
+    "content": "I've been working on a Spring Boot project and am trying to integrate code base from another repository that is using PostgreSQL on the backend. My original project was using DynamoDB. All I've done is go through the pom.xml and add in the following additional dependencies:\n\npom.xml:\n\n<!--The below dependencies will cause runtime exceptions... currently trying to figure out how to integrate-->\n<dependency>\n    <groupId>org.postgresql</groupId>\n    <artifactId>postgresql</artifactId>\n    <version>9.4-1206-jdbc42</version>\n</dependency>\n<dependency>\n    <groupId>org.hibernate.javax.persistence</groupId>\n    <artifactId>hibernate-jpa-2.0-api</artifactId>\n    <version>1.0.1.Final</version>\n</dependency>\n<dependency>\n    <groupId>org.apache.commons</groupId>\n    <artifactId>commons-lang3</artifactId>\n    <version>3.0</version>\n</dependency>",
+    "tags": [
+      "spring",
+      "postgresql",
+      "spring-boot"
+    ],
+    "solution": "From what I can see in your stacktrace, \nRepositoryRestMvcConfiguration\n is at 2.4.4 (most likely imported from the \nspring-boot-starter-data-rest\n package) but \nRepositoryResourceMappings\n is at version 2.6.1.RELEASE as specified in your pom.xml.\n\nThere were probably some constructor changes between 2.4.4 and 2.6.1 so that's why you're seeing this error here as \nRepositoryRestMvcConfiguration\n was coded to work with a specific version.\n\nTry removing the specific inclusion of \nspring-data-rest-core\n in your pom.xml in favour of the transitive dependency provided by \nspring-boot-starter-data-rest\n :\n\n<dependency>\n    <groupId>org.springframework.data</groupId>",
+    "chunk_id": "so-44233332-001"
+  },
+  {
+    "id": "so-29405617",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29405617/jbpm-6-runtime-manager-initialization-exception-with-releaseid-configurations",
+    "title": "JBPM 6 Runtime Manager Initialization Exception with releaseId configurations",
+    "content": "I have created a spring mvc project for JBPM6.1 . I am geting the following exception whenever I am creating an environment with releaseId passed in DEFAULTBUILDER method. \n\n*\n\nNo active JTA transaction on joinTransaction call\n\n*\n\nI am creating RuntimeManager with environment referring to ReleaseId. The kJar properly gets downloaded but gives the below error.  It works fine when I pick the asset from classpath. Process instance also runs and works fine.\n\nDesign and Deploy Part\n      I have created one BPMN2 workflow in Kie-Workbench 6.1.0 Final. I deployed the KJar to nexus repository. KJar also contains the attached kmodule.xml.\n\nApplication-JBPM integration\n\nRuntimeEnvironmentBuilder builder = RuntimeEnvironmentBuilder.Factory.get()\n.newDefaultBuilder(\"com.emi\",\"tools.itsr\",\"1.0.2\", \"kbase\", \"ksessionbpmn\")\n.entityManagerFactory(jbpmEMF);\n\nbuilder.userGroupCallback(new UserGroupCallBackImpl());",
+    "tags": [
+      "jpa",
+      "drools",
+      "jbpm",
+      "kie",
+      "kie-workbench"
+    ],
+    "solution": "Yea. I got it fixed. One reason was that Task audit. XML was missing and the second reason was that I was injecting the task service along with runtime manager.",
+    "chunk_id": "so-29405617-001"
+  }
+]

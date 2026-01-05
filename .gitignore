@@ -1,1 +1,102 @@
-venv
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+venv.bak/
+
+# Pyenv
+.python-version
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Editor temporary files
+*~
+*.swp
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# dotenv environment variables
+.env
+.env.*
+.env.local
+
+# Data and large files (optional)
+# Uncomment to ignore dataset or other large/derived data files
+# data/
+# data/**/*.parquet
+# *.bin
+
+# Logs
+logs/
+*.log
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Sphinx docs
+docs/_build/
+
+# Mypy
+.mypy_cache/
+
+# Misc
+.ropeproject/
+.pytest_cache/
+.cache/
+
+# Config files
+config.py

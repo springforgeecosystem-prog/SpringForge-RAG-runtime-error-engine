@@ -1,0 +1,48 @@
+[
+  {
+    "id": "so-38083434",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/38083434/why-am-i-getting-classes-must-have-either-one-and-only-one-constructor-error",
+    "title": "Why am I getting \"classes must have either one (and only one) constructor\" error?",
+    "content": "I have been trying to get Guice working but end up with this:\n\nClasses must have either one (and only one) constructor\n\nMy interface:\n\npublic interface AddrBookStore {\n    public Contact getContactByKey(String key);\n    public void addContact(Contact c);\n}\n\nThe implementation:\n\npublic class RdbmsBasedAddrBookStore implements AddrBookStore {\n    private Connection connection;\n\n    public RdbmsBasedAddrBookStore(Connection connection) {\n        this.connection = connection;\n    }\n",
+    "tags": [
+      "java",
+      "dependency-injection",
+      "guice"
+    ],
+    "solution": "You haven't set up the primary dependency for \nAddrBookStore\n. You need to have a binding for \nConnection\n, and then you need to annotate the constructor with \n@Inject\n.\n\nYou've set up the \nAddrBookStore\n class but clearly it's wrapping an Rdbms... except you haven't set up the \nRdbms\n.\n\nThere are lots of ways to do this in Guice, in this case I would probably do it with a \nProvider<Connection>\n, that way you have an entire class to put the code for spinning up your connection to the database, so something like:\n\npublic class ConnectionProvider implements Provider<Connection> {\n    public Connection get() {",
+    "chunk_id": "so-38083434-001"
+  },
+  {
+    "id": "so-29658844",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/29658844/spring-security-4-0-0-activedirectoryldapauthenticationprovider-badcredentia",
+    "title": "Spring Security 4.0.0 + ActiveDirectoryLdapAuthenticationProvider + BadCredentialsException PartialResultException",
+    "content": "I have read almost everything about Spring/Security/Ldap and ActiveDirectory on stackoverflow. Even if I found useful tips and hints, I wasn't able to solve my problem.\n\nHere it is: I did configure Spring Security using a user-service and a custom login page and everything is working just fine. Then, I tried to switch to the final authentication provider which happens to be ActiveDirectory.\n\nHere is my security-applicationContext.xml (I remind you this setup is working fine with the user-service as an authentication provider, so, the file is actually imported, etc):\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<b:beans xmlns:b=\"http://www.springframework.org/schema/beans\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns=\"http://www.springframework.org/schema/security\"\n    xmlns:oauth=\"http://www.springframework.org/schema/security/oauth\"\n    xsi:schemaLocation=\"http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd http://www.springframework.org/schema/security/oauth http://www.springframework.org/schema/security/spring-security-oauth.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd\">\n\n<!-- Définitions globales de sécurité -->\n<global-method-security pre-post-annotations=\"enabled\" />\n\n<!-- Configuration de l'accès et du formulaire -->\n<!-- Permettre l'accès libre aux feuilles de style, polices et images -->\n<http pattern='/resources/css/**' security=\"none\" />\n<http pattern='/resources/fonts/**' security=\"none\" />",
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "authentication",
+      "spring-security"
+    ],
+    "solution": "I was not able to solve this problem using Context.REFERRAL = \"follow\" in fact the problem lies in the code of method searchForUser() of the class ActiveDirectoryLdapProvider. In this method, the method SpringSecurityLdapTemplate.searchForSingleEntryInternal() is called with the bindPrincipal which is in fact the userPrincipalName composed from the arguments passed to the constructor in the first argument and the username. So, even if you set your search filter to anything else than userPrincipalName, it will be passed a userPrincipalName as argument 0. Hence, the filter with sAMAccountName will not work with a UPN and throw an exception.\n\nEither searchForUser() should be modified or augmented to detect the searchFilter is needing a username and not a UPN, either extra setters are provided to set the arguments using patterns for the searchFilter.\n\nBut there is no way to make this class working correctly in such situation without modifying the code. That's what I finally did. I wrote my own class basically a carbon copy of the original ActiveDirectoryLdapAUthenticationProvider with one single and simple modification to searchForUser() passing the username instead of the bindPrincipal to searchForSingleEntryInternal().\n\nIt is bit a nonsense you can enter whatever search filter you want but forced to use only a single argument which is actually the userPrincipalName and nothing else.",
+    "chunk_id": "so-29658844-001"
+  },
+  {
+    "id": "so-34084255",
+    "source": "StackOverflow",
+    "url": "https://stackoverflow.com/questions/34084255/spring-rest-requestbody-is-always-empty",
+    "title": "Spring REST @RequestBody is always empty",
+    "content": "So after I fixed the '415 media not supported' error (\n415 media not supported\n), I encountered a new issue. My \nRequestBody\n is always empty. When I send a request via \nChrome PostMan\n I always get a serialized entity back with only null values. I am using \nSpring (4.2.3.RELEASE)\n,\nJackson-databind (2.6.3)\n and \njackson-core (2.6.3)\n in my project. I am using annotation based configuration in my project (\n@EnableWebMvc\n to make spring automatically discover  \nHTTPMessageConverters\n).\n\nOther posts\n",
+    "tags": [
+      "java",
+      "json",
+      "spring",
+      "rest",
+      "put"
+    ],
+    "solution": "I don't see a @RequestBody in your Controller for the UserLocation object? Also make sure your properties have getters and setters.\n\npublic UserLocation updateUserLocation(@PathVariable(\"id\") int id, UserLocation user) {        \n\nWhen doing a HTTP PUT, you WILL have to put extra logic to persist your object to the database. You will need to call your DAO or Repository to persist your object. Usually you map your incoming UserLocation object to a real JPA/Hibernate entity that you persist. This will not happen automatically.",
+    "chunk_id": "so-34084255-001"
+  }
+]
