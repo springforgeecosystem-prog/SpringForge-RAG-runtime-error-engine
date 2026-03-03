@@ -25,6 +25,8 @@ Content:
 
     for doc in retrieved_docs:
         prompt += f"""
+Title: {doc.get('title', 'Unknown')}
+URL: {doc.get('url', '#')}
 Source: {doc.get('source', 'unknown')}
 Content:
 {doc.get('content')}
@@ -32,7 +34,6 @@ Content:
 
     prompt += """
 ──────────────────────────
-
 
 Produce the response in the EXACT format below.
 
@@ -50,34 +51,25 @@ Suggested Fix:
 ```java
 // minimal, valid corrected code
 References:
-"""
-
-    # Add actual URLs from retrieved_docs
-    for doc in retrieved_docs:
-        url = doc.get('url', '#')
-        title = doc.get('title', 'Unknown')
-        prompt += f"\n- {title}: {url}"
-
-    prompt += """
+<ONLY list URLs from the RETRIEVED CONTEXT that directly helped you solve this bug. If the retrieved context was irrelevant and you used your internal knowledge, output EXACTLY: "- No relevant documentation found in the knowledge base. Solution generated from core Spring Boot principles.">
 
 Notes:
-
-(optional) edge cases or alternatives (max 2 bullets)
+<optional edge cases or alternatives (max 2 bullets)>
 
 ──────────────────────────
 IMPORTANT RULES:
 
-Be concise and precise
+1. Be concise and precise.
 
-Prefer Spring Boot best practices
+2.Prefer Spring Boot best practices.
 
-If code is shown, it MUST be valid and minimal
+3. If code is shown, it MUST be valid and minimal.
 
-Do NOT invent files, classes, or dependencies
+4. Do NOT invent files, classes, or dependencies.
 
-Do NOT repeat the stacktrace
+5. Do NOT repeat the stacktrace.
 
-Optimize for IDE popup readability
+CRITICAL ANTI-HALLUCINATION RULE: Do NOT invent or hallucinate URLs. You may ONLY cite URLs explicitly provided in the 'RETRIEVED CONTEXT' block above.
 """
 
     return prompt
