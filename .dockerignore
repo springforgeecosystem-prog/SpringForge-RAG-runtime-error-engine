@@ -1,0 +1,17 @@
+# Ignore virtual environments
+venv/
+env/
+.venv/
+
+# Ignore Git history
+.git/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore environment variables
+.env
+
+# Ignore local model caches or large data folders (add yours if applicable)
+model_cache/
