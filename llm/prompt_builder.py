@@ -1,4 +1,4 @@
-def build_prompt(error: str, code_context: list, retrieved_docs: list) -> str:
+def build_prompt(error: str, code_context: list, retrieved_docs: list, env_data: dict = None) -> str:
     prompt = f"""
 You are **SpringForge**, an expert Spring Boot runtime debugging assistant.
 
@@ -19,6 +19,13 @@ File: {file['path']}
 Category: {file.get('category')}
 Content:
 {file['content']}
+"""
+
+    if env_data and env_data.get('build_file_content'):
+        prompt += f"""
+──────────────────────────
+⚙️ BUILD CONFIGURATION ({env_data.get('build_file_name', 'pom.xml / build.gradle')})
+{env_data['build_file_content']}
 """
 
     prompt += "\n──────────────────────────\n📚 RETRIEVED CONTEXT\n"
@@ -50,8 +57,11 @@ Suggested Fix:
 
 ```java
 // minimal, valid corrected code
+
 References:
-<ONLY list URLs from the RETRIEVED CONTEXT that directly helped you solve this bug. If the retrieved context was irrelevant and you used your internal knowledge, output EXACTLY: "- No relevant documentation found in the knowledge base. Solution generated from core Spring Boot principles.">
+<ONLY list URLs from the RETRIEVED CONTEXT that directly helped you solve this bug.
+If the retrieved context was irrelevant and you used your internal knowledge, output EXACTLY:
+"- No relevant documentation found in the knowledge base. Solution generated from core Spring Boot principles.">
 
 Notes:
 <optional edge cases or alternatives (max 2 bullets)>
@@ -59,17 +69,36 @@ Notes:
 ──────────────────────────
 IMPORTANT RULES:
 
-1. Be concise and precise.
+Be concise and precise.
 
-2.Prefer Spring Boot best practices.
+Prefer Spring Boot best practices.
 
-3. If code is shown, it MUST be valid and minimal.
+If code is shown, it MUST be valid and minimal.
 
-4. Do NOT invent files, classes, or dependencies.
+Do NOT invent files, classes, or dependencies.
 
-5. Do NOT repeat the stacktrace.
+Do NOT repeat the stacktrace.
 
-CRITICAL ANTI-HALLUCINATION RULE: Do NOT invent or hallucinate URLs. You may ONLY cite URLs explicitly provided in the 'RETRIEVED CONTEXT' block above.
+CRITICAL DEPENDENCY-AWARE RULE:
+You MUST carefully analyze the provided BUILD CONFIGURATION (pom.xml or build.gradle).
+
+Infer the frameworks, libraries, and starters already included.
+
+Tailor your fix to the technologies that are already present.
+
+If a dependency-related issue occurs, suggest fixes that align with the existing dependency ecosystem.
+
+Only recommend adding a new dependency if it is absolutely required to resolve the error.
+
+If suggesting a new dependency, ensure it is compatible with the existing Spring Boot version.
+
+Do NOT assume default technologies.
+Do NOT suggest alternatives that conflict with the declared dependencies.
+Do NOT remove or replace existing dependencies unless clearly incorrect.
+
+CRITICAL ANTI-HALLUCINATION RULE:
+Do NOT invent or hallucinate URLs.
+You may ONLY cite URLs explicitly provided in the 'RETRIEVED CONTEXT' block above.
 """
 
     return prompt

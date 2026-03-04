@@ -12,7 +12,8 @@ def run(error: str, code_context: list, env_data: dict = None, use_rag: bool = T
     prompt = build_prompt(
         error=error,
         code_context=code_context,
-        retrieved_docs=retrieved_docs
+        retrieved_docs=retrieved_docs,
+        env_data=env_data 
     )
 
     answer = generate_fix(prompt)
