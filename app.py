@@ -3,6 +3,10 @@ from llm.pipeline import run
 
 app = Flask(__name__)
 
+@app.route("/", methods=["GET"])
+def health():
+    return jsonify({"status": "running"})
+
 @app.route("/analyze-error", methods=["POST"])
 def analyze_error():
     payload = request.json
