@@ -99,8 +99,6 @@ docs/_build/
 .pytest_cache/
 .cache/
 
-# Config files
-config.py
 
 
 #test files
