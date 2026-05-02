@@ -14,7 +14,8 @@ def analyze_error():
     code_context = payload["code_context"]
     use_rag = payload.get("use_rag", True)
     
-    env_data = payload.get("env_data", {})
+    env_data = payload.get("environment", {})
+    print("Received env_data keys:", list(env_data.keys()) if isinstance(env_data, dict) else type(env_data))
     result = run(error, code_context, env_data=env_data, use_rag=use_rag)
     
     return jsonify(result)
