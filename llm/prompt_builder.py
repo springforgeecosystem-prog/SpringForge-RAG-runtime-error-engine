@@ -1,43 +1,59 @@
 def build_prompt(error: str, code_context: list, retrieved_docs: list, env_data: dict = None) -> str:
+    sb_version_str = ""
+    if env_data and env_data.get('spring_boot_version'):
+        sb_version_str = f" for Spring Boot version {env_data.get('spring_boot_version')}"
+
     prompt = f"""
 You are **SpringForge**, an expert Spring Boot runtime debugging assistant.
 
-Your goal is to analyze a runtime error and return a **clear, concise, developer-friendly fix**
+Your goal is to analyze a runtime error{sb_version_str} and return a **clear, concise, developer-friendly fix**
 suitable for display inside an IDE popup.
 
-──────────────────────────
-❌ ERROR TRACE
+<error_trace>
 {error}
-
-──────────────────────────
-📂 PROJECT FILE CONTEXT
+</error_trace>
 """
 
-    for file in code_context:
-        prompt += f"""
-File: {file['path']}
-Category: {file.get('category')}
-Content:
-{file['content']}
-"""
+    if env_data:
+        prompt += "\n<environment_summary>\n"
+        if env_data.get('jdk_version'):
+            prompt += f"JDK version: {env_data.get('jdk_version')}\n"
+        if env_data.get('spring_boot_version'):
+            prompt += f"Spring Boot version: {env_data.get('spring_boot_version')}\n"
+        if env_data.get('build_file_name'):
+            prompt += f"Build file: {env_data.get('build_file_name')}\n"
+        driver_hint = _detect_database_driver(env_data.get('build_file_content', ''))
+        if driver_hint:
+            prompt += f"Detected database driver: {driver_hint}\n"
+            print(f"Detected database driver: {driver_hint}")
+        prompt += "</environment_summary>\n"
+
+    if code_context:
+        prompt += "\n<project_files>\n"
+        for file in code_context:
+            # Using .get() ensures it won't crash if a key is missing
+            prompt += f"""<file path="{file.get('path', 'unknown')}" category="{file.get('category', 'unknown')}">
+{file.get('content', '')}
+</file>\n"""
+        prompt += "</project_files>\n"
 
     if env_data and env_data.get('build_file_content'):
+        build_name = env_data.get('build_file_name', 'pom.xml / build.gradle')
         prompt += f"""
-──────────────────────────
-⚙️ BUILD CONFIGURATION ({env_data.get('build_file_name', 'pom.xml / build.gradle')})
-{env_data['build_file_content']}
+<build_configuration name="{build_name}">
+{env_data.get('build_file_content', '')}
+</build_configuration>
 """
 
-    prompt += "\n──────────────────────────\n📚 RETRIEVED CONTEXT\n"
-
-    for doc in retrieved_docs:
-        prompt += f"""
-Title: {doc.get('title', 'Unknown')}
-URL: {doc.get('url', '#')}
-Source: {doc.get('source', 'unknown')}
-Content:
-{doc.get('content')}
-"""
+    prompt += "\n<retrieved_context>\n"
+    if retrieved_docs:
+        for doc in retrieved_docs:
+            prompt += f"""<doc title="{doc.get('title', 'Unknown')}" url="{doc.get('url', '#')}" source="{doc.get('source', 'unknown')}">
+{doc.get('content', '')}
+</doc>\n"""
+    else:
+        prompt += "No external documentation retrieved.\n"
+    prompt += "</retrieved_context>\n"
 
     prompt += """
 ──────────────────────────
@@ -55,8 +71,9 @@ Root Cause:
 Suggested Fix:
 <short explanation>
 
-```java
-// minimal, valid corrected code
+```<language>
+// minimal, valid corrected code (e.g., java, xml, properties, yaml)
+```
 
 References:
 <ONLY list URLs from the RETRIEVED CONTEXT that directly helped you solve this bug.
@@ -80,25 +97,50 @@ Do NOT invent files, classes, or dependencies.
 Do NOT repeat the stacktrace.
 
 CRITICAL DEPENDENCY-AWARE RULE:
-You MUST carefully analyze the provided BUILD CONFIGURATION (pom.xml or build.gradle).
 
-Infer the frameworks, libraries, and starters already included.
+You MUST carefully analyze the provided <build_configuration>.
 
-Tailor your fix to the technologies that are already present.
+Infer the frameworks, libraries, and exact Spring Boot version already included.
 
-If a dependency-related issue occurs, suggest fixes that align with the existing dependency ecosystem.
+Version Ecosystem: Ensure that any suggested imports, application properties, or dependencies strictly align with the major/minor version of Spring Boot detected in the build file (e.g., correct dependency namespaces, valid property keys for that specific era of Spring).
 
-Only recommend adding a new dependency if it is absolutely required to resolve the error.
+BOM Management: If a fix requires adjusting a Spring-managed dependency, prefer removing explicit version tags to let the Spring Boot Dependency Management (BOM) handle it, unless a specific version override is the exact solution to the bug.
 
-If suggesting a new dependency, ensure it is compatible with the existing Spring Boot version.
+Tailor your fix to the technologies that are already present. Do NOT assume default technologies.
 
-Do NOT assume default technologies.
-Do NOT suggest alternatives that conflict with the declared dependencies.
-Do NOT remove or replace existing dependencies unless clearly incorrect.
+Only recommend adding a new dependency if it is absolutely required to resolve the error. Ensure it does not conflict with declared dependencies.
+
+CRITICAL DATABASE RULE (FOR DEMO STABILITY):
+If the runtime error is related to a missing DataSource, database url, or connection:
+
+First, check the <environment_summary> and <build_configuration>. If a specific driver exists (e.g., mysql-connector-j), provide the connection properties ONLY for that database.
+
+If NO database driver is explicitly found, you MUST suggest adding the H2 in-memory database (com.h2database:h2) and its associated application properties.
+
+NEVER suggest setting up external databases like PostgreSQL, MySQL, or MongoDB unless their specific driver is already present in the build file. Always default to an embedded H2 database for missing connection errors.
 
 CRITICAL ANTI-HALLUCINATION RULE:
+
 Do NOT invent or hallucinate URLs.
-You may ONLY cite URLs explicitly provided in the 'RETRIEVED CONTEXT' block above.
+
+You may ONLY cite URLs explicitly provided in the <retrieved_context> block above.
 """
 
     return prompt
+
+
+def _detect_database_driver(build_file_content: str) -> str:
+    content = (build_file_content or "").lower()
+
+    if "mysql-connector-j" in content or "mysql:mysql-connector" in content:
+        return "mysql"
+    if "mariadb" in content:
+        return "mariadb"
+    if "postgresql" in content:
+        return "postgresql"
+    if "mssql" in content or "sqlserver" in content:
+        return "sql server"
+    if "oracle" in content:
+        return "oracle"
+
+    return ""

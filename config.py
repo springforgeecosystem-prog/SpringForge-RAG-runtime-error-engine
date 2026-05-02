@@ -15,7 +15,7 @@ EMBED_MODEL = "all-MiniLM-L6-v2"
 AWS_REGION = "us-east-1"
 
 # Claude Sonnet 4
-BEDROCK_MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+BEDROCK_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 # LLM params
 MAX_TOKENS = 800
